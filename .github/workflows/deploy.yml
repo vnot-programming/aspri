@@ -12,69 +12,76 @@ jobs:
   deploy-core:
     name: Deploy Backend to GPU Node
     runs-on: ubuntu-latest
-    # Hanya berjalan jika ada perubahan di folder aspri-core atau config
     if: github.repository == 'vnot-programming/aspri'
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Connect to Tailscale VPN
-        uses: tailscale/github-action@v2
-        with:
-          oauth-client-id: ${{ secrets.TS_OAUTH_CLIENT_ID }}
-          oauth-secret: ${{ secrets.TS_OAUTH_SECRET }}
-          tags: tag:ci
+      - name: Install Cloudflared
+        run: |
+          curl -L --output cloudflared.deb https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64.deb
+          sudo dpkg -i cloudflared.deb
 
-      - name: Execute Remote Deploy via SSH to GPU Node
-        uses: appleboy/ssh-action@v1.0.3
-        with:
-          host: slurm.penelitian.my.id
-          username: g6717500336
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          port: 22
-          script: |
-            echo "🚀 Menghubungkan ke GPU Node untuk deploy AspriAI Core..."
+      - name: Setup SSH Config for GPU Node
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          
+          cat <<EOF > ~/.ssh/config
+          Host slurm.penelitian.my.id
+            HostName slurm.penelitian.my.id
+            User g6717500336
+            IdentityFile ~/.ssh/id_ed25519
+            StrictHostKeyChecking no
+            ProxyCommand cloudflared access ssh --hostname %h --id ${{ secrets.CF_CLIENT_ID }} --secret ${{ secrets.CF_CLIENT_SECRET }}
+          EOF
+
+      - name: Execute Remote Deploy via SSH
+        run: |
+          ssh slurm.penelitian.my.id << 'EOF'
+            echo "🚀 Menghubungkan ke GPU Node via Cloudflare Tunnel..."
             cd /data/users/g6717500336/singularity/AspriAI
             git pull origin main
-            
-            # Restart layanan backend di dalam Singularity/Screen/Tmux
-            # Contoh restart script:
-            # tmux kill-session -t aspri_core 2>/dev/null || true
-            # tmux new-session -d -s aspri_core "source /data/programs/anaconda3/bin/activate yolo_env && cd aspri-core && python app.py"
             echo "✅ Backend AspriAI Core berhasil dideploy!"
+          EOF
 
   # ------------------------------------------------------------------
-  # JOB 2: Deploy Frontend (AspriAI Desk) ke VPS Azure / Docker Host
+  # JOB 2: Deploy Frontend (AspriAI Desk) ke Docker Host
   # ------------------------------------------------------------------
   deploy-desk:
     name: Deploy Frontend to Web Host
     runs-on: ubuntu-latest
-    # Hanya berjalan jika ada perubahan di folder aspri-desk
+    if: github.repository == 'vnot-programming/aspri'
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Connect to Tailscale VPN
-        uses: tailscale/github-action@v2
-        with:
-          oauth-client-id: ${{ secrets.TS_OAUTH_CLIENT_ID }}
-          oauth-secret: ${{ secrets.TS_OAUTH_SECRET }}
-          tags: tag:ci
+      - name: Install Cloudflared
+        run: |
+          curl -L --output cloudflared.deb https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64.deb
+          sudo dpkg -i cloudflared.deb
 
-      - name: Execute Remote Deploy via SSH to Web Host (ssh-docker-host)
-        uses: appleboy/ssh-action@v1.0.3
-        with:
-          host: ssh-docker-host.vnot.my.id
-          username: my
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          port: 22
-          script: |
-            echo "🚀 Menghubungkan ke Web Host untuk deploy AspriAI Desk..."
+      - name: Setup SSH Config for Web Host
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          
+          cat <<EOF > ~/.ssh/config
+          Host ssh-docker-host.vnot.my.id
+            HostName ssh-docker-host.vnot.my.id
+            User my
+            IdentityFile ~/.ssh/id_ed25519
+            StrictHostKeyChecking no
+            ProxyCommand cloudflared access ssh --hostname %h --id ${{ secrets.CF_CLIENT_ID }} --secret ${{ secrets.CF_CLIENT_SECRET }}
+          EOF
+
+      - name: Execute Remote Deploy via SSH
+        run: |
+          ssh ssh-docker-host.vnot.my.id << 'EOF'
+            echo "🚀 Menghubungkan ke Web Host via Cloudflare Tunnel..."
             cd /home/my/aspri-desk || cd /data/users/g6717500336/singularity/AspriAI
             git pull origin main
-            
-            # Build Next.js & restart PM2 / Docker
-            # npm install
-            # npm run build
-            # pm2 restart aspri-desk || pm2 start npm --name "aspri-desk" -- start
             echo "✅ Frontend AspriAI Desk berhasil dideploy!"
+          EOF
