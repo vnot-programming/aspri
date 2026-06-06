@@ -28,8 +28,8 @@ jobs:
       - name: Execute Remote Deploy via SSH to GPU Node
         uses: appleboy/ssh-action@v1.0.3
         with:
-          host: 100.111.139.127 # IP GPU Host (vm102) dari Network Topology
-          username: my # User SSH non-root
+          host: slurm.penelitian.my.id
+          username: g6717500336
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           port: 22
           script: |
@@ -61,16 +61,16 @@ jobs:
           oauth-secret: ${{ secrets.TS_OAUTH_SECRET }}
           tags: tag:ci
 
-      - name: Execute Remote Deploy via SSH to Web Host (Azure VPS / vm100)
+      - name: Execute Remote Deploy via SSH to Web Host (ssh-docker-host)
         uses: appleboy/ssh-action@v1.0.3
         with:
-          host: 20.214.189.6 # IP Publik Azure VPS dari Network Topology
-          username: vnot
-          password: ${{ secrets.VPS_PASSWORD }} # Menggunakan sandi/SSH key
+          host: ssh-docker-host.vnot.my.id
+          username: my
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
           port: 22
           script: |
             echo "🚀 Menghubungkan ke Web Host untuk deploy AspriAI Desk..."
-            cd /home/vnot/aspri-desk || cd /data/users/g6717500336/singularity/AspriAI
+            cd /home/my/aspri-desk || cd /data/users/g6717500336/singularity/AspriAI
             git pull origin main
             
             # Build Next.js & restart PM2 / Docker
