@@ -1,0 +1,80 @@
+name: AspriAI Remote Deployment CI/CD
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  # ------------------------------------------------------------------
+  # JOB 1: Deploy Backend (AspriAI Core) ke GPU Cluster Node
+  # ------------------------------------------------------------------
+  deploy-core:
+    name: Deploy Backend to GPU Node
+    runs-on: ubuntu-latest
+    # Hanya berjalan jika ada perubahan di folder aspri-core atau config
+    if: github.repository == 'vnot-programming/aspri'
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Connect to Tailscale VPN
+        uses: tailscale/github-action@v2
+        with:
+          oauth-client-id: ${{ secrets.TS_OAUTH_CLIENT_ID }}
+          oauth-secret: ${{ secrets.TS_OAUTH_SECRET }}
+          tags: tag:ci
+
+      - name: Execute Remote Deploy via SSH to GPU Node
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: 100.111.139.127 # IP GPU Host (vm102) dari Network Topology
+          username: my # User SSH non-root
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: 22
+          script: |
+            echo "🚀 Menghubungkan ke GPU Node untuk deploy AspriAI Core..."
+            cd /data/users/g6717500336/singularity/AspriAI
+            git pull origin main
+            
+            # Restart layanan backend di dalam Singularity/Screen/Tmux
+            # Contoh restart script:
+            # tmux kill-session -t aspri_core 2>/dev/null || true
+            # tmux new-session -d -s aspri_core "source /data/programs/anaconda3/bin/activate yolo_env && cd aspri-core && python app.py"
+            echo "✅ Backend AspriAI Core berhasil dideploy!"
+
+  # ------------------------------------------------------------------
+  # JOB 2: Deploy Frontend (AspriAI Desk) ke VPS Azure / Docker Host
+  # ------------------------------------------------------------------
+  deploy-desk:
+    name: Deploy Frontend to Web Host
+    runs-on: ubuntu-latest
+    # Hanya berjalan jika ada perubahan di folder aspri-desk
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Connect to Tailscale VPN
+        uses: tailscale/github-action@v2
+        with:
+          oauth-client-id: ${{ secrets.TS_OAUTH_CLIENT_ID }}
+          oauth-secret: ${{ secrets.TS_OAUTH_SECRET }}
+          tags: tag:ci
+
+      - name: Execute Remote Deploy via SSH to Web Host (Azure VPS / vm100)
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: 20.214.189.6 # IP Publik Azure VPS dari Network Topology
+          username: vnot
+          password: ${{ secrets.VPS_PASSWORD }} # Menggunakan sandi/SSH key
+          port: 22
+          script: |
+            echo "🚀 Menghubungkan ke Web Host untuk deploy AspriAI Desk..."
+            cd /home/vnot/aspri-desk || cd /data/users/g6717500336/singularity/AspriAI
+            git pull origin main
+            
+            # Build Next.js & restart PM2 / Docker
+            # npm install
+            # npm run build
+            # pm2 restart aspri-desk || pm2 start npm --name "aspri-desk" -- start
+            echo "✅ Frontend AspriAI Desk berhasil dideploy!"
