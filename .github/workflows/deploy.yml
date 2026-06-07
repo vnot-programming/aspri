@@ -91,11 +91,14 @@ jobs:
           ssh -v ssh-docker-host.vnot.my.id << 'EOF'
             echo "🚀 Menghubungkan ke Web Host via Cloudflare Tunnel..."
             if [ ! -d "/home/my/AspriAI/.git" ]; then
-              echo "🚀 Folder AspriAI tidak ditemukan. Melakukan bootstrap clone..."
-              git clone --filter=blob:none --no-checkout git@github.com:vnot-programming/aspri.git /home/my/AspriAI
+              echo "🚀 Menginisialisasi repositori Git di /home/my/AspriAI..."
+              mkdir -p /home/my/AspriAI
               cd /home/my/AspriAI
+              git init
+              git remote add origin git@github.com:vnot-programming/aspri.git
               git sparse-checkout set aspri-desk scripts
-              git checkout ${{ github.ref_name }}
+              git fetch --depth=1 origin ${{ github.ref_name }}
+              git checkout -f ${{ github.ref_name }}
             fi
             chmod +x /home/my/AspriAI/scripts/run_deploy.sh
             /home/my/AspriAI/scripts/run_deploy.sh --branch ${{ github.ref_name }}
