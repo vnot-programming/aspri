@@ -23,9 +23,11 @@ jobs:
           sudo dpkg -i cloudflared.deb
 
       - name: Setup SSH Config for GPU Node
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
         run: |
           mkdir -p ~/.ssh
-          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_ed25519
+          echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_ed25519
           chmod 600 ~/.ssh/id_ed25519
           
           cat <<EOF > ~/.ssh/config
@@ -63,9 +65,11 @@ jobs:
           sudo dpkg -i cloudflared.deb
 
       - name: Setup SSH Config for Web Host
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
         run: |
           mkdir -p ~/.ssh
-          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_ed25519
+          echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_ed25519
           chmod 600 ~/.ssh/id_ed25519
           
           cat <<EOF > ~/.ssh/config
