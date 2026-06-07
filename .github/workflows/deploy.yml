@@ -101,6 +101,7 @@ jobs:
             git sparse-checkout set aspri-desk scripts
             git fetch --depth=1 origin ${{ github.ref_name }}
             git checkout -f ${{ github.ref_name }}
+            git reset --hard origin/${{ github.ref_name }}
             chmod +x /home/my/AspriAI/scripts/run_deploy.sh
             /home/my/AspriAI/scripts/run_deploy.sh --branch ${{ github.ref_name }}
           EOF

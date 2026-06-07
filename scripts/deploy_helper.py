@@ -68,10 +68,10 @@ def main():
         run_cmd("git fetch origin", cwd=target_dir)
         
         # 3. Checkout target branch (force if necessary)
-        run_cmd(f"git checkout {args.branch}", cwd=target_dir)
+        run_cmd(f"git checkout -f {args.branch}", cwd=target_dir)
         
-        # 4. Pull latest changes
-        run_cmd(f"git pull origin {args.branch}", cwd=target_dir)
+        # 4. Reset to origin branch to discard local commits/changes
+        run_cmd(f"git reset --hard origin/{args.branch}", cwd=target_dir)
         
     print(f"✅ Deployment of '{args.folder}' on branch '{args.branch}' completed successfully!")
 
