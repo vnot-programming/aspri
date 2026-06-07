@@ -87,4 +87,26 @@ gantt
     *   Lingkungan kini benar-benar bersih dan siap untuk inisiasi ulang.
     *   Langkah selanjutnya adalah membangun kembali proyek Ollama secara modular di bawah folder `/data/users/g6717500336/singularity/ollama` yang berdiri sendiri sesuai instruksi user.
 
+### [Entri 004] — Inisiasi Ulang & Kompilasi Modular Server Ollama v0.24.0
+*   **Tanggal/Waktu:** 2026-06-07 12:47 WIB
+*   **Tugas yang diselesaikan:**
+    *   Membangun ulang modul server Ollama v0.24.0 secara modular di direktori `/data/users/g6717500336/singularity/ollama/`.
+    *   Membuat berkas `setup.sh` dengan argumen `--install` yang mengotomasi pembuatan folder `models/` & `logs/`, menyalin `.env` dari SlurmMaster, dan mem-pull image container Singularity `ollama-0.24.sif` secara otomatis.
+    *   Membuat berkas job runner `sbatch_aspri_service.sh` dengan konfigurasi:
+        1.  Penggunaan port dinamis acak (`18000-18999`).
+        2.  Flash Attention dinonaktifkan (`OLLAMA_FLASH_ATTENTION=false`) untuk GPU Volta V100.
+        3.  Reverse SSH tunnel diarahkan ke host internal `slurmmaster` ke port statis `11434` (untuk dicocokkan dengan Cloudflare Tunnel ID `02700c0e-a0ea-468b-8abd-19619affe58e`).
+        4.  Integrasi pengiriman tautan publik fallback (quick tunnel) ke Telegram sebagai link HTML aktif yang dapat diklik.
+        5.  Sistem pembersihan (`cleanup EXIT`) berbasis variabel PID presisi (`$OLLAMA_PID`, `$CF_PID`, `$SSH_PID`) agar tidak menyentuh proses tunnel utama di login node.
+    *   Mengeksekusi `bash setup.sh --install` secara sukses (SIF ter-pull sempurna, `.env` tersalin).
+*   **File yang diubah/dibuat:**
+    *   `docs/SDP.md` [DIUBAH - OK]
+    *   `singularity/ollama/setup.sh` [BARU - OK]
+    *   `singularity/ollama/sbatch_aspri_service.sh` [BARU - OK]
+*   **Status saat ini:** **Selesai (Inisiasi Ulang & Kompilasi SIF Ollama 100%)**
+*   **Catatan untuk AI selanjutnya (Handoff Note):**
+    *   Modul Ollama v0.24.0 siap dijalankan di compute node kluster.
+    *   Tunggu instruksi user untuk langkah selanjutnya (menyalakan booking GPU atau mem-pull model).
+
+
 
