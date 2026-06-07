@@ -88,10 +88,14 @@ jobs:
 
       - name: Execute Remote Deploy via SSH
         run: |
-          # Menggunakan mode verbose (-v) untuk mencetak log handshake SSH agar bisa didiagnosis jika terjadi error
           ssh -v ssh-docker-host.vnot.my.id << 'EOF'
             echo "🚀 Menghubungkan ke Web Host via Cloudflare Tunnel..."
-            cd /home/my/aspri-desk || cd /data/users/g6717500336/singularity/AspriAI
+            if [ ! -d "/home/my/AspriAI" ]; then
+              echo "🚀 Folder AspriAI tidak ditemukan. Melakukan clone..."
+              git clone git@github.com:vnot-programming/aspri.git /home/my/AspriAI
+            fi
+            cd /home/my/AspriAI/aspri-desk
             git pull origin main
             echo "✅ Frontend AspriAI Desk berhasil dideploy!"
           EOF
+
