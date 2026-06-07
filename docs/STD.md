@@ -22,6 +22,8 @@ Strategi pengujian AspriAI berfokus pada jaminan keandalan pengiriman instruksi 
 | **TC-B-02** | Keamanan | Akses API dengan kunci palsu/salah. | `GET /v1/chat` (Header: `Bearer salah_key`) | HTTP 403 Forbidden, dengan pesan `"Invalid API Key"`. | Wajib Lolos |
 | **TC-B-03** | Integrasi | Proxy chat ke Ollama dengan model valid. | `POST /v1/chat/completions` (model: "llama3") | HTTP 200 OK, mengembalikan token teks bahasa secara streaming. | Wajib Lolos |
 | **TC-B-04** | Integrasi | Trigger render gambar ke ComfyUI via API JSON. | `POST /v1/studio/txt2img` (prompt: "cat") | HTTP 200 OK, server mengembalikan status `SUCCESS` dan file URL gambar. | Wajib Lolos |
+| **TC-B-05** | Keamanan | Akses domain utama tanpa header Cloudflare Access. | `GET https://backend-ollama.penelitian.my.id/api/tags` | HTTP 403 Forbidden (Ditolak oleh Cloudflare Access Edge). | Wajib Lolos |
+| **TC-B-06** | Keamanan | Akses domain utama dengan header Cloudflare Access valid. | `GET https://backend-ollama.penelitian.my.id/api/tags` (Header: `CF-Access-*` valid) | HTTP 200 OK, server mengembalikan status JSON daftar model. | Wajib Lolos |
 
 ### 2.2 Pengujian Integrasi Slurm & Singularity
 

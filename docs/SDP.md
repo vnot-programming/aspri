@@ -126,6 +126,51 @@ gantt
     *   Kontrol server Ollama dan arsitektur modular di compute node kini terintegrasi penuh ke dalam sistem dashboard interaktif `myslurm.sh`.
     *   Langkah selanjutnya adalah menunggu instruksi user untuk inisiasi modul lanjutan (seperti Open WebUI).
 
+### [Entri 006] — Perbaikan Akses Eksternal Quick Tunnel & Sinkronisasi Kredensial Global
+*   **Tanggal/Waktu:** 2026-06-07 15:15 WIB
+*   **Tugas yang diselesaikan:**
+    *   Mendiagnosis dan memperbaiki masalah error `403 Forbidden` saat mengakses API Ollama via Cloudflare Quick Tunnel (`*.trycloudflare.com`) dari Postman. Perbaikan dilakukan dengan mengubah pengikatan host Ollama di `sbatch_aspri_service.sh` menjadi `0.0.0.0:${OLLAMA_PORT}` dan menambahkan argumen `--http-host-header localhost` di cloudflared.
+    *   Membersihkan sisa proses zombie (`ollama`, `cloudflared`, `sbatch_aspri_service.sh`) di compute node `ai3` untuk menghindari bentrokan port dinamis.
+    *   Menyalin berkas kredensial global `/data/users/g6717500336/singularity/.env` (Single Source of Truth) ke `/data/users/g6717500336/singularity/AspriAI/.env` dan `/data/users/g6717500336/singularity/ollama/.env` guna sinkronisasi otentikasi.
+    *   Mengamankan izin akses file `.env` lokal menggunakan `chmod 600` untuk mencegah pembacaan data sensitif oleh pengguna lain di kluster Slurm.
+    *   Menghilangkan parameter `SSH_PRIVATE_KEY_BASE64` dari file `.env` lokal dan membiarkannya tersimpan eksklusif di GitHub Secrets (praktik keamanan terbaik).
+*   **File yang diubah/dibuat:**
+    *   `singularity/ollama/sbatch_aspri_service.sh` [DIUBAH - OK]
+    *   `singularity/AspriAI/.env` [DIUBAH - OK]
+    *   `singularity/ollama/.env` [DIUBAH - OK]
+    *   `singularity/AspriAI/docs/SDP.md` [DIUBAH - OK]
+*   **Status saat ini:** **Selesai (API Security & Access Verification 100%)**
+*   **Catatan untuk AI selanjutnya (Handoff Note):**
+    *   Token otentikasi terbagi menjadi dua: Token SSH (di GitHub Secrets untuk CI/CD) dan Token API (di `.env` lokal untuk akses klien). Desain ini mengisolasi akses SSH dari potensi kebocoran token API.
+    *   Pengujian API GET/POST menggunakan domain utama `backend-ollama.penelitian.my.id` saat ini sudah berjalan sukses dengan menyertakan header `CF-Access-Client-Id` dan `CF-Access-Client-Secret`.
 
+### [Entri 007] — Sinkronisasi Keamanan Cloudflare, Environment Global, dan Setup RVM
+*   **Tanggal/Waktu:** 2026-06-07 15:35 WIB
+*   **Tugas yang diselesaikan:**
+    *   **Keputusan Arsitektur Jaringan:** Memutuskan untuk menggunakan **Cloudflare Named Tunnel** dengan **Zero Trust Service Token** untuk keamanan. Keputusan ini menghindari penggunaan *Quick Tunnel* yang dinamis (tidak konsisten saat restart), serta menghindari beban komputasi tambahan di sisi *Slurm node* (seperti keharusan menginstal Web Server untuk validasi Bearer Token internal).
+    *   **Kredensial Lingkungan (Environment):** Mengonfirmasi penggunaan global `.env` (berasal dari `/data/users/g6717500336/singularity/.env`) pada proyek AspriAI untuk sinkronisasi token.
+    *   **Kebijakan Rahasia GitHub Actions:** Mengonfirmasi bahwa parameter otentikasi pendeployan (`CF_CLIENT_ID`, `CF_CLIENT_SECRET`, dan `SSH_PRIVATE_KEY_BASE64`) tidak disimpan di *environment* lokal, melainkan diamankan 100% pada *GitHub Secrets* untuk *deployment* via `.github/workflows/deploy.yml`.
+    *   **Perencanaan Frontend:** Memutuskan pengkajian penggunaan **Laravel Versi 13** (terbaru) untuk *AspriAI Desk (Frontend)* guna memanfaatkan fitur integrasi `ai-sdk` bawaan yang *out-of-the-box*.
+    *   **Milestone Terkait:** Memastikan keberhasilan *setup* proyek Computer Vision lain yaitu RVM (Reverse Vending Machine), dengan status aktif pada `https://backend-rvm.penelitian.my.id` dan `https://front-rvm.penelitian.my.id` sebagai acuan *best practice* infrastruktur.
+*   **File yang diubah/dibuat:**
+    *   `docs/SDP.md` [DIUBAH - OK]
+    *   `docs/SDD.md` [DIUBAH - OK]
+*   **Status saat ini:** **Selesai (Infrastruktur & Arsitektur Jaringan Ditetapkan 100%)**
+*   **Catatan untuk AI selanjutnya (Handoff Note):**
+    *   Implementasi infrastruktur keamanan dan lingkungan proyek telah disepakati dan dikonfigurasi.
+    *   **AspriAI Core (Backend)** untuk interaksi langsung dengan model Ollama (serta ComfyUI) masih **Belum Dibuat** (Fase 1 *Pending*).
+    *   Langkah selanjutnya (bagi AI atau *developer* selanjutnya) adalah memulai pengembangan **AspriAI Core** dengan FastAPI.
 
-
+### [Entri 008] — Simplifikasi Arsitektur Keamanan (No-SQLite) & Penetapan Prioritas
+*   **Tanggal/Waktu:** 2026-06-07 15:45 WIB
+*   **Tugas yang diselesaikan:**
+    *   **Simplifikasi Keamanan (Penghapusan Bearer Token):** Berdasarkan tinjauan *overhead* server, diputuskan bahwa sistem **tidak lagi membutuhkan lapisan autentikasi API Key (Bearer Token) via SQLite** di sisi aplikasi *FastAPI*. Autentikasi dan sekuritas diserahkan 100% kepada lapisan **Cloudflare Access (Zero Trust)**. Aplikasi *FastAPI* murni bertindak sebagai proksi lokal. Ini akan menghemat resource secara drastis (zero-DB requirement).
+    *   **Penetapan Conda Environment:** Dikonfirmasi bahwa *backend FastAPI* akan di-install dan dijalankan menggunakan environment bawaan standar yaitu `yolo_env`.
+    *   **Penetapan Fokus Uji Awal:** Fokus implementasi tahap pertama dibatasi secara ketat pada pembangunan **Endpoint Proksi Ollama** (membuktikan *pipeline* berhasil) sebelum melanjutkan ke modul sekunder (ComfyUI / YOLO).
+*   **File yang diubah/dibuat:**
+    *   `docs/SDP.md` [DIUBAH - OK]
+    *   `implementation_plan.md` (Artifact) [DIUBAH - OK]
+*   **Status saat ini:** **Selesai (Blueprint Terkalibrasi Ulang 100%)**
+*   **Catatan untuk AI selanjutnya (Handoff Note):**
+    *   Abaikan instruksi lama terkait integrasi SQLite atau verifikasi `Bearer Token` di `main.py`. Aplikasi FastAPI harus dibangun sesederhana dan se-ringan mungkin sebagai *proxy gateway* yang transparan ke port `11434` (Ollama).
+    *   Langkah selanjutnya: Install paket `fastapi`, `uvicorn`, dan `httpx` di `yolo_env`, kemudian buat `main.py` dan `app/api/v1/endpoints/chat.py`.

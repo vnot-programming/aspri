@@ -8,7 +8,7 @@ Dokumen ini mendefinisikan kebutuhan perangkat lunak (fungsional dan non-fungsio
 ### 1.2 Cakupan Sistem
 Sistem AspriAI terdiri atas dua subsistem utama:
 1.  **AspriAI Core (Backend):** Layanan API Gateway berbasis FastAPI yang membungkus pemanggilan model AI di cluster Slurm menggunakan kontainer Singularity.
-2.  **AspriAI Desk (Frontend):** Dasbor bermain web berbasis Next.js dengan antarmuka bertema *Bio-Digital Minimalism* untuk interaksi visual dengan model dan manajemen API Key.
+2.  **AspriAI Desk (Frontend):** Dasbor bermain web berbasis Laravel 13 (menggunakan AI SDK bawaan) dengan antarmuka bertema *Bio-Digital Minimalism* untuk interaksi visual dengan model dan manajemen API Key.
 
 ---
 
@@ -24,9 +24,10 @@ Sistem wajib mendukung fitur-fitur fungsional berikut yang dikelompokkan ke dala
     *   `/v1/studio/txt2img` -> Diteruskan ke ComfyUI (Flux/SDXL).
     *   `/v1/studio/img2video` -> Diteruskan ke ComfyUI Video (SVD).
     *   `/v1/vision/detect` -> Diteruskan ke detektor gambar YOLOv11/SAM2.
+*   **FR-A.4 (Integrasi Cloudflare Access):** Semua request API eksternal ke domain utama `backend-ollama.penelitian.my.id` wajib melewati otentikasi Cloudflare Access dengan menyertakan header `CF-Access-Client-Id` dan `CF-Access-Client-Secret`.
 
 ### Modul B: AspriAI Desk (Playground Dasbor)
-*   **FR-B.1 (Chat Playground):** Menyajikan antarmuka obrolan interaktif ala ChatGPT/Claude untuk melakukan tanya jawab bahasa, perancangan teks, atau bantuan penulisan kode program.
+*   **FR-B.1 (Chat Playground):** Menyajikan obrolan interaktif ala ChatGPT/Claude untuk melakukan tanya jawab bahasa, perancangan teks, atau bantuan penulisan kode program.
 *   **FR-B.2 (Studio Playground):** Menyediakan form sederhana untuk memasukkan prompt teks, mengunggah gambar referensi, memilih tipe output (gambar/video), dan mengunduh hasil eksekusi generatif.
 *   **FR-B.3 (Vision Playground):** Mengunggah berkas gambar untuk melihat hasil anotasi bounding box (deteksi objek) dan kontur piksel (segmentasi instance) secara visual.
 
@@ -43,3 +44,4 @@ Sistem wajib mendukung fitur-fitur fungsional berikut yang dikelompokkan ke dala
 *   **NFR-2 (Ketersediaan - Availability):** Dasbor Frontend wajib dapat diakses 24/7 di luar jaringan lokal via Cloudflare Tunnel HTTPS dengan proteksi SSL penuh.
 *   **NFR-3 (Efisiensi Sumber Daya):** Kontainer Singularity ComfyUI hanya boleh memakan alokasi GPU saat proses render aktif, dan harus melepas GPU (`scancel`) setelah selesai agar antrean Slurm tidak terhambat.
 *   **NFR-4 (Estetika Antarmuka - UI/UX):** Tampilan dasbor web wajib mengadopsi standar *Bio-Digital Minimalism 2026*, mendukung mode terang/gelap secara sinkron dengan preferensi OS, ergonomis untuk layar ponsel (zona sentuh minimal 44x44px), dan aman untuk penderita buta warna.
+*   **NFR-5 (Isolasi Kredensial & Pengamanan File Env):** Sistem wajib memisahkan token otentikasi administratif (SSH Deploy via GitHub Secrets) dan token API klien (API Access via `.env` lokal). Berkas kredensial lokal wajib dilindungi dengan permission ketat (`600`) di server host.

@@ -7,13 +7,15 @@ Untuk menjamin setiap kebutuhan fungsional (FR) yang didefinisikan dalam SRS dii
 | ID Kebutuhan (SRS) | Modul Desain Terkait (SDD) | Komponen Teknis Realisasi |
 |:---|:---|:---|
 | **FR-A.1** (Autentikasi API Key) | Bab 2 (Tabel `api_keys`) & Bab 3 (Header Auth) | FastAPI `Security` dependency injection dengan validasi token hash SHA-256 dari SQLite. |
-| **FR-A.2** (Manajemen Key di UI) | Bab 1 & Bab 2 (Tabel `api_keys`) | Dasbor Playground React/Next.js memanggil route `POST /v1/keys` dan `DELETE /v1/keys`. |
+| **FR-A.2** (Manajemen Key di UI) | Bab 1 & Bab 2 (Tabel `api_keys`) | Dasbor Playground Laravel 13 memanggil route `POST /v1/keys` and `DELETE /v1/keys`. |
 | **FR-A.3** (Routing API Terpadu) | Bab 3 (Spesifikasi Endpoints) | Pustaka `httpx` di FastAPI bertindak sebagai HTTP client asinkron untuk meneruskan payload. |
-| **FR-B.1** (Chat Playground) | Bab 1 (Playground UI) | Komponen UI Next.js yang mendukung streaming token teks menggunakan pustaka Markdown renderer. |
-| **FR-B.2** (Studio Playground) | Bab 1 & Bab 3.2 (ComfyUI Wrapper) | Form parameter Next.js mengirim data ke backend, yang memodifikasi node JSON workflow ComfyUI. |
+| **FR-A.4** (Integrasi Cloudflare Access) | Bab 4 (Otentikasi Lapis Jaringan) | Validasi Service Token (`CF-Access-*`) di sisi Cloudflare Edge Proxy sebelum request menyentuh server API. |
+| **FR-B.1** (Chat Playground) | Bab 1 (Playground UI) | Komponen UI Blade/Livewire/Inertia Laravel 13 yang mendukung streaming token teks menggunakan pustaka Markdown renderer. |
+| **FR-B.2** (Studio Playground) | Bab 1 & Bab 3.2 (ComfyUI Wrapper) | Form parameter Laravel 13 mengirim data ke backend, yang memodifikasi node JSON workflow ComfyUI. |
 | **FR-C.1** (Slurm Dispatcher) | Bab 1 (Slurm Integration) | Eksekusi utilitas sistem Python `subprocess.run(["sbatch", "job.sbatch"])` di backend FastAPI. |
 | **FR-C.2** (Singularity Execution)| Bab 1 (Engine Layer) | Script wrapper sbatch memanggil `singularity exec --nv` dari direktori `/data/programs/`. |
 | **FR-C.3** (CUDA Memory Flush) | Bab 1 (Engine Layer) | Python script memicu garbage collection dan `torch.cuda.empty_cache()` secara terjadwal setelah inferensi selesai. |
+| **NFR-5** (Isolasi Kredensial) | Bab 4.1 (Isolasi Izin File Lokal) | Penerapan `chmod 600` pada file `.env` lokal dan pemindahan kunci privat SSH ke GitHub Secrets. |
 
 ---
 
@@ -29,3 +31,8 @@ Untuk menjamin setiap kebutuhan fungsional (FR) yang didefinisikan dalam SRS dii
 
 ### 2.3 Mekanisme Integrasi ComfyUI Tanpa GUI
 *   Untuk menjaga fleksibilitas, AspriAI Core tidak menulis ulang logika graf node di Python. Ia **mengonsumsi workflows JSON** hasil ekspor dari UI ComfyUI. Hal ini memudahkan kita jika di kemudian hari ingin mengganti model (misal dari Stable Diffusion ke Flux.1-Dev atau SVD ke CogVideoX) cukup dengan mengekspor file JSON alur kerja baru dari GUI dan meletakkannya di folder `workflows/` tanpa perlu membongkar kode backend FastAPI.
+
+### 2.4 Mengapa Memilih Laravel 13 untuk Frontend (AspriAI Desk)?
+*   **Integrasi Native AI SDK:** Laravel 13 memperkenalkan AI SDK bawaan secara *out-of-the-box*, memungkinkan interaksi langsung dengan LLM (Ollama) dan API generatif lainnya menggunakan *syntax* yang seragam, bersih, dan terstandarisasi.
+*   **Sistem Keamanan Bawaan (Robust Server-Side Security):** Menyediakan mekanisme otentikasi sesi, validasi token, proteksi CSRF, dan manajemen otorisasi tingkat lanjut secara *native* (misal via Laravel Sanctum/Breeze). Hal ini mengeliminasi banyak penulisan *boilerplate code* keamanan yang biasanya harus ditulis manual pada Next.js.
+*   **Keandalan Ekosistem Database:** Pustaka Eloquent ORM di Laravel sangat mempermudah pemodelan data, migrasi, dan pengelolaan tabel kunci API (`api_keys`) serta riwayat aktivitas (`activity_logs`) secara terstruktur dan efisien.
