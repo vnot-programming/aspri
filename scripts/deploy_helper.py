@@ -54,15 +54,15 @@ def main():
         # 1. Clone the repository without checking out files
         run_cmd(f"git clone --filter=blob:none --no-checkout -b {args.branch} {args.repo_url} {target_dir}")
         
-        # 2. Configure sparse-checkout to only include the target folder
-        run_cmd(f"git sparse-checkout set {args.folder}", cwd=target_dir)
+        # 2. Configure sparse-checkout to include target folder and scripts
+        run_cmd(f"git sparse-checkout set {args.folder} scripts", cwd=target_dir)
         
         # 3. Checkout the target branch
         run_cmd(f"git checkout {args.branch}", cwd=target_dir)
     else:
         print(f"🔄 Repository already exists at {target_dir}. Syncing branch '{args.branch}'...")
         # 1. Ensure sparse-checkout is correctly configured
-        run_cmd(f"git sparse-checkout set {args.folder}", cwd=target_dir)
+        run_cmd(f"git sparse-checkout set {args.folder} scripts", cwd=target_dir)
         
         # 2. Fetch origin updates
         run_cmd("git fetch origin", cwd=target_dir)

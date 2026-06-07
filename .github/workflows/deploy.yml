@@ -96,10 +96,11 @@ jobs:
               cd /home/my/AspriAI
               git init
               git remote add origin git@github.com:vnot-programming/aspri.git
-              git sparse-checkout set aspri-desk scripts
-              git fetch --depth=1 origin ${{ github.ref_name }}
-              git checkout -f ${{ github.ref_name }}
             fi
+            cd /home/my/AspriAI
+            git sparse-checkout set aspri-desk scripts
+            git fetch --depth=1 origin ${{ github.ref_name }}
+            git checkout -f ${{ github.ref_name }}
             chmod +x /home/my/AspriAI/scripts/run_deploy.sh
             /home/my/AspriAI/scripts/run_deploy.sh --branch ${{ github.ref_name }}
           EOF
