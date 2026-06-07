@@ -27,7 +27,8 @@ jobs:
           SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
         run: |
           mkdir -p ~/.ssh
-          echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_ed25519
+          # Menghapus karakter carriage return (\r) untuk mencegah error format key Windows (CRLF)
+          echo "$SSH_PRIVATE_KEY" | tr -d '\r' > ~/.ssh/id_ed25519
           chmod 600 ~/.ssh/id_ed25519
           
           cat <<EOF > ~/.ssh/config
@@ -36,12 +37,15 @@ jobs:
             User g6717500336
             IdentityFile ~/.ssh/id_ed25519
             StrictHostKeyChecking no
+            UserKnownHostsFile /dev/null
             ProxyCommand cloudflared access ssh --hostname %h --id ${{ secrets.CF_CLIENT_ID }} --secret ${{ secrets.CF_CLIENT_SECRET }}
           EOF
+          chmod 600 ~/.ssh/config
 
       - name: Execute Remote Deploy via SSH
         run: |
-          ssh slurm.penelitian.my.id << 'EOF'
+          # Menggunakan mode verbose (-v) untuk mencetak log handshake SSH agar bisa didiagnosis jika terjadi error
+          ssh -v slurm.penelitian.my.id << 'EOF'
             echo "🚀 Menghubungkan ke GPU Node via Cloudflare Tunnel..."
             cd /data/users/g6717500336/singularity/AspriAI
             git pull origin main
@@ -69,7 +73,8 @@ jobs:
           SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
         run: |
           mkdir -p ~/.ssh
-          echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_ed25519
+          # Menghapus karakter carriage return (\r) untuk mencegah error format key Windows (CRLF)
+          echo "$SSH_PRIVATE_KEY" | tr -d '\r' > ~/.ssh/id_ed25519
           chmod 600 ~/.ssh/id_ed25519
           
           cat <<EOF > ~/.ssh/config
@@ -78,12 +83,15 @@ jobs:
             User my
             IdentityFile ~/.ssh/id_ed25519
             StrictHostKeyChecking no
+            UserKnownHostsFile /dev/null
             ProxyCommand cloudflared access ssh --hostname %h --id ${{ secrets.CF_CLIENT_ID }} --secret ${{ secrets.CF_CLIENT_SECRET }}
           EOF
+          chmod 600 ~/.ssh/config
 
       - name: Execute Remote Deploy via SSH
         run: |
-          ssh ssh-docker-host.vnot.my.id << 'EOF'
+          # Menggunakan mode verbose (-v) untuk mencetak log handshake SSH agar bisa didiagnosis jika terjadi error
+          ssh -v ssh-docker-host.vnot.my.id << 'EOF'
             echo "🚀 Menghubungkan ke Web Host via Cloudflare Tunnel..."
             cd /home/my/aspri-desk || cd /data/users/g6717500336/singularity/AspriAI
             git pull origin main
