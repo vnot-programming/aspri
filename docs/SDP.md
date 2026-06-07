@@ -108,5 +108,24 @@ gantt
     *   Modul Ollama v0.24.0 siap dijalankan di compute node kluster.
     *   Tunggu instruksi user untuk langkah selanjutnya (menyalakan booking GPU atau mem-pull model).
 
+### [Entri 005] — Integrasi Menu Manajemen AspriAI pada Script Utama Slurm
+*   **Tanggal/Waktu:** 2026-06-07 13:12 WIB
+*   **Tugas yang diselesaikan:**
+    *   Menambahkan opsi menu baru **`8. 🤖 Manajemen AspriAI (Ollama & WebUI)`** ke dalam antarmuka menu utama skrip pengelola kluster `/data/users/g6717500336/Trainning-Models/MyFineTunning-SlurmMaster/utils/myslurm.sh`.
+    *   Mengimplementasikan fungsi `manage_aspri_ai()` yang secara cerdas mendeteksi status sewa GPU aktif (Job ID, Compute Node, State), keaktifan proses server Ollama, dan port compute node yang sedang dipetakan.
+    *   Menyusun submenu di bawah Menu 8 untuk:
+        1.  🚀 **Jalankan Server Ollama:** Meluncurkan `sbatch_aspri_service.sh` secara remote di background compute node yang sedang aktif disewa (via SSH + nohup).
+        2.  🛑 **Hentikan Server Ollama:** Mematikan proses server, cloudflared, dan reverse tunnel secara presisi di compute node tanpa melepaskan alokasi sewa GPU (Job Slurm tetap jalan).
+        3.  📋 **Lihat Log Runtime:** Memantau log jalannya Ollama dan log tunnel secara real-time.
+        4.  ⚙️ **Inisiasi Ulang Modul:** Memicu ulang skrip `setup.sh --install` secara instan dari menu.
+*   **File yang diubah/dibuat:**
+    *   `docs/SDP.md` [DIUBAH - OK]
+    *   `/data/users/g6717500336/Trainning-Models/MyFineTunning-SlurmMaster/utils/myslurm.sh` [DIUBAH - OK]
+*   **Status saat ini:** **Selesai (Integrasi Menu Utama Slurm 100%)**
+*   **Catatan untuk AI selanjutnya (Handoff Note):**
+    *   Kontrol server Ollama dan arsitektur modular di compute node kini terintegrasi penuh ke dalam sistem dashboard interaktif `myslurm.sh`.
+    *   Langkah selanjutnya adalah menunggu instruksi user untuk inisiasi modul lanjutan (seperti Open WebUI).
+
+
 
 
