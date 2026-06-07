@@ -52,7 +52,7 @@ def main():
     if not os.path.exists(git_dir):
         print(f"🚀 Initializing repository with sparse-checkout on branch '{args.branch}'...")
         # 1. Clone the repository without checking out files
-        run_cmd(f"git clone --filter=blob:none --no-checkout -b {args.branch} {args.repo-url} {target_dir}")
+        run_cmd(f"git clone --filter=blob:none --no-checkout -b {args.branch} {args.repo_url} {target_dir}")
         
         # 2. Configure sparse-checkout to only include the target folder
         run_cmd(f"git sparse-checkout set {args.folder}", cwd=target_dir)
