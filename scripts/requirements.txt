@@ -1,0 +1,3 @@
+# Dependencies for deployment script
+# Currently none are strictly required as we use built-in libraries (subprocess, argparse, os, sys)
+# You can add dependencies here if needed (e.g. requests, paramiko)
