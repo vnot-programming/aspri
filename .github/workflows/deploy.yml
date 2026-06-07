@@ -23,12 +23,16 @@ jobs:
           sudo dpkg -i cloudflared.deb
 
       - name: Setup SSH Config for GPU Node
-        env:
-          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
         run: |
           mkdir -p ~/.ssh
-          # Menghapus karakter carriage return (\r) untuk mencegah error format key Windows (CRLF)
-          echo "$SSH_PRIVATE_KEY" | tr -d '\r' > ~/.ssh/id_ed25519
+          
+          # Menulis SSH Key menggunakan literal EOF agar aman dari sensor/modifikasi ekspansi shell
+          cat << 'EOF' > ~/.ssh/id_ed25519
+          ${{ secrets.SSH_PRIVATE_KEY }}
+          EOF
+          
+          # Bersihkan carriage return (\r) jika kunci di-copy dari sistem Windows
+          sed -i 's/\r$//' ~/.ssh/id_ed25519
           chmod 600 ~/.ssh/id_ed25519
           
           cat <<EOF > ~/.ssh/config
@@ -69,12 +73,16 @@ jobs:
           sudo dpkg -i cloudflared.deb
 
       - name: Setup SSH Config for Web Host
-        env:
-          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
         run: |
           mkdir -p ~/.ssh
-          # Menghapus karakter carriage return (\r) untuk mencegah error format key Windows (CRLF)
-          echo "$SSH_PRIVATE_KEY" | tr -d '\r' > ~/.ssh/id_ed25519
+          
+          # Menulis SSH Key menggunakan literal EOF agar aman dari sensor/modifikasi ekspansi shell
+          cat << 'EOF' > ~/.ssh/id_ed25519
+          ${{ secrets.SSH_PRIVATE_KEY }}
+          EOF
+          
+          # Bersihkan carriage return (\r) jika kunci di-copy dari sistem Windows
+          sed -i 's/\r$//' ~/.ssh/id_ed25519
           chmod 600 ~/.ssh/id_ed25519
           
           cat <<EOF > ~/.ssh/config
