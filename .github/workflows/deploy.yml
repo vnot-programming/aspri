@@ -26,8 +26,8 @@ jobs:
         run: |
           mkdir -p ~/.ssh
           
-          # Mendekode kunci privat SSH dari Base64 secara aman untuk memotong sensor rahasia GitHub
-          echo "${{ secrets.SSH_PRIVATE_KEY_BASE64 }}" | base64 -d > ~/.ssh/id_ed25519
+          # Mendekode kunci privat SSH dari Base64 dengan membersihkan spasi/baris baru agar aman dari error invalid input
+          echo "${{ secrets.SSH_PRIVATE_KEY_BASE64 }}" | tr -d '\r' | tr -d '\n' | base64 -d > ~/.ssh/id_ed25519
           chmod 600 ~/.ssh/id_ed25519
           
           cat <<EOF > ~/.ssh/config
@@ -71,8 +71,8 @@ jobs:
         run: |
           mkdir -p ~/.ssh
           
-          # Mendekode kunci privat SSH dari Base64 secara aman untuk memotong sensor rahasia GitHub
-          echo "${{ secrets.SSH_PRIVATE_KEY_BASE64 }}" | base64 -d > ~/.ssh/id_ed25519
+          # Mendekode kunci privat SSH dari Base64 dengan membersihkan spasi/baris baru agar aman dari error invalid input
+          echo "${{ secrets.SSH_PRIVATE_KEY_BASE64 }}" | tr -d '\r' | tr -d '\n' | base64 -d > ~/.ssh/id_ed25519
           chmod 600 ~/.ssh/id_ed25519
           
           cat <<EOF > ~/.ssh/config
