@@ -71,3 +71,20 @@ gantt
     *   Akses server via Cloudflare Tunnel sudah terproteksi penuh dari publik namun meloloskan CI/CD dan SSH lokal ber-token.
     *   Lanjutkan implementasi **Fase 1 (Pembangunan Core API Gateway)** pada folder `aspri-core/`.
 
+### [Entri 003] — Pembersihan Modul Lama & Audit Script Auto-Booking GPU
+*   **Tanggal/Waktu:** 2026-06-07 11:59 WIB
+*   **Tugas yang diselesaikan:**
+    *   Melakukan audit mendalam dan pembersihan total terhadap instansi lama di direktori `/data/users/g6717500336/singularity/` untuk mencegah bentrokan port dan resource dengan arsitektur AspriAI yang baru.
+    *   Menghapus direktori proyek lama secara permanen: `lm-studio/`, `ollama/`, dan `open-webui/`.
+    *   Menonaktifkan pemanggilan skrip launcher `sbatch_llm_service.sh` dari generator sbatch `book_gpu.py` (baris 144-147) dan file submit job `submit_booking_run.sbatch` (baris 21-24) untuk mencegah inisialisasi tak terduga saat booking GPU diaktifkan kembali.
+    *   Mematikan sesi tmux `gpu_booking` (daemon `book_gpu.py`) serta membatalkan job Slurm `6618` (`vnot`) agar resource GPU terbebas penuh (status bersih).
+*   **File yang diubah/dibuat:**
+    *   `docs/SDP.md` [DIUBAH - OK]
+    *   `/data/users/g6717500336/Trainning-Models/MyFineTunning-SlurmMaster/utils/book_gpu.py` [DIUBAH - OK]
+    *   `/data/users/g6717500336/Trainning-Models/MyFineTunning-SlurmMaster/utils/submit_booking_run.sbatch` [DIUBAH - OK]
+*   **Status saat ini:** **Selesai (Pembersihan Lingkungan Lama 100%)**
+*   **Catatan untuk AI selanjutnya (Handoff Note):**
+    *   Lingkungan kini benar-benar bersih dan siap untuk inisiasi ulang.
+    *   Langkah selanjutnya adalah membangun kembali proyek Ollama secara modular di bawah folder `/data/users/g6717500336/singularity/ollama` yang berdiri sendiri sesuai instruksi user.
+
+
