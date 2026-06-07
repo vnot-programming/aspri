@@ -124,3 +124,6 @@ ComfyUI tidak hanya menyediakan antarmuka visual berupa graf node, melainkan dap
 1.  **Proteksi Sumber Daya GPU:** Rendering halaman antarmuka Next.js tidak menyedot memori VRAM GPU. Dengan pemisahan ini, kapasitas 32GB VRAM GPU Tesla V100 sepenuhnya dialokasikan untuk inferensi model generatif.
 2.  **Isolasi Jaringan (Security):** GPU Node yang berada di jaringan lokal privat tidak langsung terekspos ke internet. Akses luar hanya dijembatani oleh Cloudflare Tunnel menuju API Gateway, sedangkan Frontend dapat ditempatkan pada VPS luar yang aman.
 3.  **Kemandirian Deployment:** Anda bebas melakukan pembaruan antarmuka web, merancang ulang gaya visual CSS, atau menambahkan fitur UI di Next.js tanpa perlu mengganggu stabilitas jalannya layanan Ollama dan ComfyUI di GPU cluster.
+
+---
+*Last updated: 2026-06-07*
