@@ -26,13 +26,8 @@ jobs:
         run: |
           mkdir -p ~/.ssh
           
-          # Menulis SSH Key menggunakan literal EOF agar aman dari sensor/modifikasi ekspansi shell
-          cat << 'EOF' > ~/.ssh/id_ed25519
-          ${{ secrets.SSH_PRIVATE_KEY }}
-          EOF
-          
-          # Bersihkan carriage return (\r) jika kunci di-copy dari sistem Windows
-          sed -i 's/\r$//' ~/.ssh/id_ed25519
+          # Mendekode kunci privat SSH dari Base64 secara aman untuk memotong sensor rahasia GitHub
+          echo "${{ secrets.SSH_PRIVATE_KEY_BASE64 }}" | base64 -d > ~/.ssh/id_ed25519
           chmod 600 ~/.ssh/id_ed25519
           
           cat <<EOF > ~/.ssh/config
@@ -76,13 +71,8 @@ jobs:
         run: |
           mkdir -p ~/.ssh
           
-          # Menulis SSH Key menggunakan literal EOF agar aman dari sensor/modifikasi ekspansi shell
-          cat << 'EOF' > ~/.ssh/id_ed25519
-          ${{ secrets.SSH_PRIVATE_KEY }}
-          EOF
-          
-          # Bersihkan carriage return (\r) jika kunci di-copy dari sistem Windows
-          sed -i 's/\r$//' ~/.ssh/id_ed25519
+          # Mendekode kunci privat SSH dari Base64 secara aman untuk memotong sensor rahasia GitHub
+          echo "${{ secrets.SSH_PRIVATE_KEY_BASE64 }}" | base64 -d > ~/.ssh/id_ed25519
           chmod 600 ~/.ssh/id_ed25519
           
           cat <<EOF > ~/.ssh/config
