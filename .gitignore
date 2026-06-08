@@ -9,6 +9,7 @@ deployment/
 docs/1.md
 docs/infrastructur.md
 docs/stack_laravel.md
+scripts/
 .venv
 env/
 venv/
