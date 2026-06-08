@@ -53,6 +53,7 @@ jobs:
 
   # ------------------------------------------------------------------
   # JOB 2: Deploy Frontend (AspriAI Desk) ke Docker Host
+  # Lokasi : /home/my/apps/AspriAI/aspri-desk
   # ------------------------------------------------------------------
   deploy-desk:
     name: Deploy Frontend to Web Host

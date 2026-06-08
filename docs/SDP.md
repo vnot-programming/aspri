@@ -213,3 +213,52 @@ gantt
 *   **Catatan untuk AI selanjutnya (Handoff Note):**
     *   RVM Frontend sekarang bisa berkomunikasi dengan backend via Cloudflare Access.
     *   Arsitektur AspriAI telah dipisahkan secara tegas dan Laravel 13 resmi digunakan sebagai pengelola antarmuka/database. Patuhi panduan `workflow-aspri.md`.
+- **Tanggal/Waktu:** Mon Jun  8 23:49:49 +07 2026
+- **Tugas yang diselesaikan:** Mengubah AspriAI Core Gateway (main.py) menjadi jembatan (Unified Health Check) untuk mengecek status Ollama Server, RVM Server, dan ComfyUI (Placeholder) secara konkuren dari satu endpoint (/health).
+- **File yang diubah/dibuat:** singularity/AspriAI/aspri-core/main.py
+- **Status saat ini:** Selesai
+- **Catatan untuk AI selanjutnya:** API Gateway di aspri-core sudah mendukung agregasi health dari 3 services.
+- **Tanggal/Waktu:** Tue Jun  9 00:03:59 +07 2026
+- **Tugas yang diselesaikan:** Memperbaiki logika ekstraksi status JSON di API Gateway (main.py). Kini Gateway menggunakan status 'offline' atau 'degraded' berdasarkan isi body payload response, terlepas dari HTTP status 200 OK proxy.
+- **File yang diubah/dibuat:** singularity/AspriAI/aspri-core/main.py
+- **Status saat ini:** Selesai
+- **Catatan untuk AI selanjutnya:** Parsing status sekarang telah menangani nested health check payload.
+- **Tanggal/Waktu:** Tue Jun  9 00:05:51 +07 2026
+- **Tugas yang diselesaikan:** Memperbaiki HTTP Status Code di chat.py untuk membalas dengan 503 (Service Unavailable) atau 502 (Bad Gateway) saat Ollama mati, sehingga response JSON dan HTTP Status selaras.
+- **File yang diubah/dibuat:** singularity/AspriAI/aspri-core/app/api/v1/endpoints/chat.py
+- **Status saat ini:** Selesai
+- **Tanggal/Waktu:** Tue Jun  9 00:32:34 +07 2026
+- **Tugas yang diselesaikan:** Membuat skrip Watchdog untuk pemulihan otomatis (auto-recovery) Ollama saat job Slurm terputus atau node berpindah.
+- **File yang diubah/dibuat:** singularity/ollama/watchdog_ollama.sh
+- **Status saat ini:** Selesai
+- **Tanggal/Waktu:** Tue Jun  9 00:34:30 +07 2026
+- **Tugas yang diselesaikan:** Merefaktor skrip Watchdog Ollama menjadi `run_ollama_daemon.sh` agar menggunakan pendekatan `srun --overlap` seperti pada RVM Backend. File watchdog lama dihapus. Pendekatan ini lebih Cloud-Native, bebas bentrok, dan seragam penamaannya.
+- **File yang diubah/dibuat:** singularity/ollama/run_ollama_daemon.sh (Baru), singularity/ollama/watchdog_ollama.sh (Dihapus)
+- **Status saat ini:** Selesai
+- **Tanggal/Waktu:** Tue Jun  9 00:40:51 +07 2026
+- **Tugas yang diselesaikan:** Merefaktor logika Menu 8 di `myslurm.sh` agar fully terintegrasi dengan `run_ollama_daemon.sh`. Deteksi proses, auto-start, manual-start, dan stop kini menggunakan eksekusi Daemon di latar belakang pada Login Node dan tidak lagi menggunakan SSH ke Compute Node.
+- **File yang diubah/dibuat:** Trainning-Models/MyFineTunning-SlurmMaster/utils/myslurm.sh
+- **Status saat ini:** Selesai
+- **Tanggal/Waktu:** Tue Jun  9 00:41:49 +07 2026
+- **Tugas yang diselesaikan:** Menghapus script legacy `sbatch_aspri_service.sh` karena peran peluncurannya telah sepenuhnya digantikan oleh `run_ollama_daemon.sh` (srun overlap).
+- **File yang diubah/dibuat:** singularity/ollama/sbatch_aspri_service.sh (Dihapus)
+- **Status saat ini:** Selesai
+- **Tanggal/Waktu:** Tue Jun  9 00:45:02 +07 2026
+- **Tugas yang diselesaikan:** Memperbaiki bug kegagalan parser port di UI myslurm.sh akibat tidak ter-log-nya string deklarasi port dinamis di dalam `ollama_daemon.log`. 
+- **File yang diubah/dibuat:** singularity/ollama/run_ollama_daemon.sh
+- **Status saat ini:** Selesai
+
+### [Entri 011] — Penerapan Kebijakan VRAM Keep-Alive 1 Menit & Jeda Pemuatan
+*   **Tanggal/Waktu:** Tue Jun  9 00:58:00 +07 2026
+*   **Tugas yang diselesaikan:**
+    *   Mengintegrasikan variabel lingkungan `export SINGULARITYENV_OLLAMA_KEEP_ALIVE="1m"` pada skrip auto-resume `run_ollama_daemon.sh` untuk pelepasan otomatis memori VRAM GPU Volta V100 1 menit setelah request selesai.
+    *   Mendokumentasikan mekanisme VRAM Keep-Alive serta implikasi jeda awal pemuatan model (cold start loading delay sekitar 5-15 detik) ke dalam `docs/SDD.md` dan `docs/SDP.md` sebagai panduan interaksi pengguna.
+*   **File yang diubah/dibuat:**
+    *   `singularity/ollama/run_ollama_daemon.sh` [DIUBAH - OK]
+    *   `singularity/AspriAI/docs/SDD.md` [DIUBAH - OK]
+    *   `singularity/AspriAI/docs/SDP.md` [DIUBAH - OK]
+*   **Status saat ini:** **Selesai (Konfigurasi Optimasi VRAM & Dokumentasi 100%)**
+*   **Catatan untuk AI selanjutnya (Handoff Note):**
+    *   Ollama sekarang akan melepaskan GPU secara otomatis setelah 1 menit tidak aktif.
+    *   Pada frontend AspriAI Desk, perlu diantisipasi atau ditampilkan status "Loading / Menyiapkan Model" pada UI jika respons pertama membutuhkan waktu beberapa detik (cold start).
+

@@ -131,3 +131,15 @@ Untuk mengamankan API LLM (Ollama) yang diekspos ke internet publik tanpa membeb
 * **Host Header Rewrite:** Dikarenakan Ollama memproteksi request dari luar localhost ketika Host Header tidak cocok, biner `cloudflared` lokal dikonfigurasi dengan flag `--http-host-header localhost`. Flag ini menulis ulang header `Host` menjadi `localhost` sebelum diteruskan ke server Ollama lokal, meniadakan error *403 Forbidden*.
 * **Ollama Host Binding:** Server Ollama di dalam kontainer Singularity diikat ke host `0.0.0.0:${OLLAMA_PORT}` untuk menerima request internal yang dirutekan oleh *agent* Cloudflared.
 * **Isolasi Izin File Lokal:** Berkas konfigurasi `.env` lokal dilindungi secara ketat di server dengan permission `600` (eksklusif hanya untuk pemilik user). Kunci privat SSH administratif (`SSH_PRIVATE_KEY_BASE64`) tidak disimpan secara lokal, melainkan disimpan eksklusif pada **GitHub Secrets** untuk keamanan terisolasi.
+
+---
+
+## 5. Manajemen VRAM & Kebijakan Keep-Alive (Optimasi Node GPU)
+
+Untuk memungkinkan koeksistensi model-model AI lain pada kluster GPU Volta V100 yang sama (seperti YOLO/SAM2 untuk RVM dan ComfyUI Studio), durasi penahanan VRAM oleh Ollama dikonfigurasi secara ketat:
+
+*   **Batas Waktu Keep-Alive (`OLLAMA_KEEP_ALIVE="1m"`):** Ollama dipaksa untuk melepaskan alokasi VRAM GPU tepat **1 menit** setelah menerima permintaan (request) terakhir. Ini menghindari penahanan memori GPU tanpa batas waktu (default Ollama adalah 5 menit).
+*   **Implikasi Jeda Pemuatan ("Loading / Spin-up Delay"):**
+    *   **Cold Start (Sesi Baru / Setelah Idle > 1 Menit):** Ketika pengguna memulai sesi percakapan baru atau mengirimkan prompt pertama setelah idle lebih dari 1 menit, server Ollama perlu memuat ulang (*reload*) model dari disk ke VRAM GPU. Hal ini menimbulkan jeda awal berupa status **"Loading" selama kurang lebih 5 hingga 15 detik** tergantung pada ukuran model.
+    *   **Warm Start (Sesi Aktif / Interaksi Berkelanjutan):** Jika pengguna mengirimkan prompt berikutnya dalam jendela waktu kurang dari 1 menit dari respons terakhir, model sudah berada di VRAM GPU. Respons akan langsung dihasilkan secara instan tanpa jeda pemuatan model.
+

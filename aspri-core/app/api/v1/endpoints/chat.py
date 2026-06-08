@@ -53,9 +53,43 @@ async def _reverse_proxy(request: Request):
         headers={k: v for k, v in response.headers.items() if k.lower() != "content-encoding"}
     )
 
+from fastapi.responses import JSONResponse
+
 @router.api_route("/health", methods=["GET", "POST"])
 async def health_check():
-    return {"status": "ok", "message": "AspriAI Core is healthy"}
+    """
+    Mengecek secara riil (murni) apakah engine Ollama Server di port 11435 merespon.
+    """
+    async with httpx.AsyncClient() as client:
+        try:
+            # Default root url Ollama merespon "Ollama is running" (200 OK)
+            response = await client.get(OLLAMA_BASE_URL, timeout=5.0)
+            if response.status_code == 200:
+                return JSONResponse(
+                    status_code=200,
+                    content={
+                        "status": "ok", 
+                        "message": "AspriAI Core is healthy & Ollama is running",
+                        "ollama_response": response.text
+                    }
+                )
+            else:
+                return JSONResponse(
+                    status_code=502, # Bad Gateway (Ollama responds with non-200)
+                    content={
+                        "status": "degraded",
+                        "message": f"Ollama engine returned status code {response.status_code}"
+                    }
+                )
+        except httpx.RequestError as exc:
+            return JSONResponse(
+                status_code=503, # Service Unavailable (Ollama mati)
+                content={
+                    "status": "offline",
+                    "message": "Ollama engine is unreachable or down",
+                    "error": str(exc)
+                }
+            )
 
 @router.api_route("/{path:path}", methods=["GET", "POST", "PUT", "DELETE", "OPTIONS", "HEAD", "PATCH"])
 async def ollama_proxy_catch_all(request: Request, path: str):
