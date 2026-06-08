@@ -30,7 +30,7 @@ def main():
     )
     parser.add_argument(
         "--target-dir", 
-        default="/home/my/AspriAI", 
+        default="/home/my/apps/AspriAI", 
         help="Target directory on the server"
     )
     parser.add_argument(
