@@ -174,3 +174,22 @@ gantt
 *   **Catatan untuk AI selanjutnya (Handoff Note):**
     *   Abaikan instruksi lama terkait integrasi SQLite atau verifikasi `Bearer Token` di `main.py`. Aplikasi FastAPI harus dibangun sesederhana dan se-ringan mungkin sebagai *proxy gateway* yang transparan ke port `11434` (Ollama).
     *   Langkah selanjutnya: Install paket `fastapi`, `uvicorn`, dan `httpx` di `yolo_env`, kemudian buat `main.py` dan `app/api/v1/endpoints/chat.py`.
+
+### [Entri 009] — Fix Deployment AspriAI (Docker-Compose & Asset Build)
+*   **Tanggal/Waktu:** 2026-06-08 20:31 WIB
+*   **Tugas yang diselesaikan:**
+    *   Mendiagnosis dan memperbaiki HTTP 500 (`Connection refused`, `Permission denied storage`, dan `Vite manifest not found`) pada AspriAI Desk (Laravel + Vite).
+    *   Membuat `entrypoint.sh` kustom pada Docker image PHP (`AspriAI-php`) untuk melakukan otomatisasi proses saat start container: `composer install`, `npm install && npm run build`, perbaikan *ownership* `storage/` dan `bootstrap/cache/`, serta `php artisan config:clear`.
+    *   Memperbaiki pemetaan volume Nginx dan PHP-FPM di `docker-compose.yml` agar menunjuk secara langsung ke source code `./aspri-desk` di Docker Host.
+    *   Memperbarui aturan CI/CD: Mendaftarkan `deployment/` ke dalam `.gitignore` (agar setup Docker terisolasi dan dikelola via *docker-host*) serta menambahkan direktori `docs/` ke dalam instruksi *sparse-checkout* Github Actions.
+    *   Mereplikasi perubahan konfigurasi (*re-build & deployment ulang*) langsung ke server `docker-host`, menghasilkan status `200 OK` yang stabil dan *favicon* yang ter-load secara normal.
+*   **File yang diubah/dibuat:**
+    *   `deployment/AspriAI/docker/php/Dockerfile` [BARU - OK]
+    *   `deployment/AspriAI/docker/php/entrypoint.sh` [BARU - OK]
+    *   `deployment/AspriAI/docker-compose.yml` [DIUBAH - OK]
+    *   `.gitignore` [DIUBAH - OK]
+    *   `.github/workflows/deploy.yml` [DIUBAH - OK]
+    *   `docs/SDP.md` [DIUBAH - OK]
+*   **Status saat ini:** **Selesai (Infrastruktur Frontend Desk & Build Pipeline 100%)**
+*   **Catatan untuk AI selanjutnya (Handoff Note):**
+    *   Deployment Frontend AspriAI-Desk (Laravel 12) di docker-host kini bersifat *self-sustaining*. Apabila ada perubahan source code yang ditarik, proses container yang me-restart akan otomatis memicu `entrypoint.sh` untuk me-rebuild aset secara otomatis.
