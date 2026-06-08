@@ -7,6 +7,8 @@ deployment/
 
 # Scratch / notes sementara
 docs/1.md
+docs/infrastructur.md
+docs/stack_laravel.md
 .venv
 env/
 venv/
