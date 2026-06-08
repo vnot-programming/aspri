@@ -262,3 +262,18 @@ gantt
     *   Ollama sekarang akan melepaskan GPU secara otomatis setelah 1 menit tidak aktif.
     *   Pada frontend AspriAI Desk, perlu diantisipasi atau ditampilkan status "Loading / Menyiapkan Model" pada UI jika respons pertama membutuhkan waktu beberapa detik (cold start).
 
+### [Entri 012] — Integrasi Konfigurasi Docker-Compose dan Nginx ke Root Repo
+*   **Tanggal/Waktu:** Mon Jun  8 18:37:00 UTC 2026
+*   **Tugas yang diselesaikan:**
+    *   Memasukkan konfigurasi Docker dan Nginx (`docker-compose.yml`, direktori `docker/`, dan `nginx/`) di tingkat root repository agar dapat dilacak dan dikelola langsung melalui Git pada branch `desk/dev`.
+*   **File yang diubah/dibuat:**
+    *   `docker-compose.yml` [BARU - OK]
+    *   `docker/php/Dockerfile` [BARU - OK]
+    *   `docker/php/entrypoint.sh` [BARU - OK]
+    *   `nginx/default.conf` [BARU - OK]
+    *   `docs/SDP.md` [DIUBAH - OK]
+*   **Status saat ini:** **Selesai (Sinkronisasi Konfigurasi Root Docker & Git 100%)**
+*   **Catatan untuk AI selanjutnya (Handoff Note):**
+    *   Konfigurasi aktif Docker dan Nginx sekarang telah ter-track secara resmi di branch `desk/dev` agar konsisten antar-lingkungan pengembangan.
+
+
