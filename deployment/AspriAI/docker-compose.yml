@@ -1,0 +1,32 @@
+services:
+  app-php:
+    build:
+      context: .
+      dockerfile: docker/php/Dockerfile
+    container_name: AspriAI-php
+    restart: unless-stopped
+    working_dir: /var/www/html
+    volumes:
+      - ./aspri-desk:/var/www/html       # Source code Laravel
+      - ./aspri-desk/.env:/var/www/html/.env  # Mount .env langsung agar tidak perlu copy manual
+    networks:
+      - global-net
+
+  nginx-app:
+    image: nginx:alpine
+    container_name: AspriAI-nginx
+    restart: unless-stopped
+    ports:
+      - "8081:80"
+    volumes:
+      - ./aspri-desk:/var/www/html       # Source code Laravel (shared dengan php)
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf
+    networks:
+      - global-net
+    depends_on:
+      - app-php
+
+networks:
+  global-net:
+    external: true
+    name: global-net

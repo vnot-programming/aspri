@@ -1,0 +1,48 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: shared-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${GLOBAL_DB_NAME}
+      POSTGRES_USER: ${GLOBAL_DB_USER}
+      POSTGRES_PASSWORD: ${GLOBAL_DB_PASSWORD}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    networks:
+      - global-net
+
+  redis:
+    image: redis:7-alpine
+    container_name: shared-redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes
+    volumes:
+      - redisdata:/data
+    networks:
+      - global-net
+
+  minio:
+    image: minio/minio:latest
+    container_name: shared-minio
+    restart: unless-stopped
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+    volumes:
+      - miniodata:/data
+    networks:
+      - global-net
+
+networks:
+  global-net:
+    name: global-net
+    driver: bridge
+
+volumes:
+  pgdata:
+  redisdata:
+  miniodata:
