@@ -101,6 +101,11 @@ jobs:
             cd /home/my/apps/AspriAI
             git sparse-checkout set aspri-desk scripts docs
             git fetch --depth=1 origin ${{ github.ref_name }}
+            # Temporarily restore ownership of storage & cache to host user (UID 1000) for Git checkout
+            if docker ps --format '{{.Names}}' | grep -q 'AspriAI-php'; then
+              echo "🔑 Restoring folder ownership to 'my' user (UID 1000) for Git checkout..."
+              docker exec -u root AspriAI-php chown -R 1000:1000 /var/www/html/storage /var/www/html/bootstrap/cache || true
+            fi
             git checkout -f ${{ github.ref_name }}
             git reset --hard origin/${{ github.ref_name }}
             chmod +x /home/my/apps/AspriAI/scripts/run_deploy.sh
