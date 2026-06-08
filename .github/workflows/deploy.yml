@@ -90,19 +90,19 @@ jobs:
         run: |
           ssh -v ssh-docker-host.vnot.my.id << 'EOF'
             echo "🚀 Menghubungkan ke Web Host via Cloudflare Tunnel..."
-            if [ ! -d "/home/my/AspriAI/.git" ]; then
-              echo "🚀 Menginisialisasi repositori Git di /home/my/AspriAI..."
-              mkdir -p /home/my/AspriAI
-              cd /home/my/AspriAI
+            if [ ! -d "/home/my/apps/AspriAI/.git" ]; then
+              echo "🚀 Menginisialisasi repositori Git di /home/my/apps/AspriAI..."
+              mkdir -p /home/my/apps/AspriAI
+              cd /home/my/apps/AspriAI
               git init
               git remote add origin git@github.com:vnot-programming/aspri.git
             fi
-            cd /home/my/AspriAI
+            cd /home/my/apps/AspriAI
             git sparse-checkout set aspri-desk scripts
             git fetch --depth=1 origin ${{ github.ref_name }}
             git checkout -f ${{ github.ref_name }}
             git reset --hard origin/${{ github.ref_name }}
-            chmod +x /home/my/AspriAI/scripts/run_deploy.sh
-            /home/my/AspriAI/scripts/run_deploy.sh --branch ${{ github.ref_name }}
+            chmod +x /home/my/apps/AspriAI/scripts/run_deploy.sh
+            /home/my/apps/AspriAI/scripts/run_deploy.sh --branch ${{ github.ref_name }}
           EOF
 
