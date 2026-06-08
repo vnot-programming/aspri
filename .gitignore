@@ -1,6 +1,12 @@
 # Environments
 .env
 .env.*
+
+# Deployment configs (dikelola langsung di docker-host, bukan di repo)
+deployment/
+
+# Scratch / notes sementara
+docs/1.md
 .venv
 env/
 venv/
