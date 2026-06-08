@@ -10,7 +10,7 @@ gantt
     dateFormat  YYYY-MM-DD
     section Fase 1: Core API Gateway
     Inisiasi Proyek & Dokumentasi docs/   :active, des1, 2026-06-07, 1d
-    Pembangunan FastAPI Core & Integrasi SQLite : des2, after des1, 3d
+    Pembangunan FastAPI Core Stateless Proxy    : des2, after des1, 3d
     Konektivitas Ollama & YOLO Routing          : des3, after des2, 2d
     section Fase 2: ComfyUI API Wrapper
     Eksport & Integrasi JSON workflows         : des4, after des3, 3d
@@ -19,7 +19,7 @@ gantt
     Sbatch Script generator & Job Queuer        : des6, after des5, 3d
     CUDA Memory Cleanup daemon                  : des7, after des6, 1d
     section Fase 4: Playground UI (AspriDesk)
-    Next.js Setup & UI Design System            : des8, after des7, 3d
+    Laravel 13 (Postgres/Redis/MinIO) Setup     : des8, after des7, 3d
     Integrasi Client API & Web Playground Panel : des9, after des8, 4d
 ```
 
@@ -178,7 +178,7 @@ gantt
 ### [Entri 009] — Fix Deployment AspriAI (Docker-Compose & Asset Build)
 *   **Tanggal/Waktu:** 2026-06-08 20:31 WIB
 *   **Tugas yang diselesaikan:**
-    *   Mendiagnosis dan memperbaiki HTTP 500 (`Connection refused`, `Permission denied storage`, dan `Vite manifest not found`) pada AspriAI Desk (Laravel + Vite).
+    *   Mendiagnosis dan memperbaiki HTTP 500 (`Connection refused`, `Permission denied storage`, dan `Vite manifest not found`) pada AspriAI Desk (Laravel 13 + Vite).
     *   Membuat `entrypoint.sh` kustom pada Docker image PHP (`AspriAI-php`) untuk melakukan otomatisasi proses saat start container: `composer install`, `npm install && npm run build`, perbaikan *ownership* `storage/` dan `bootstrap/cache/`, serta `php artisan config:clear`.
     *   Memperbaiki pemetaan volume Nginx dan PHP-FPM di `docker-compose.yml` agar menunjuk secara langsung ke source code `./aspri-desk` di Docker Host.
     *   Memperbarui aturan CI/CD: Mendaftarkan `deployment/` ke dalam `.gitignore` (agar setup Docker terisolasi dan dikelola via *docker-host*) serta menambahkan direktori `docs/` ke dalam instruksi *sparse-checkout* Github Actions.
@@ -192,4 +192,24 @@ gantt
     *   `docs/SDP.md` [DIUBAH - OK]
 *   **Status saat ini:** **Selesai (Infrastruktur Frontend Desk & Build Pipeline 100%)**
 *   **Catatan untuk AI selanjutnya (Handoff Note):**
-    *   Deployment Frontend AspriAI-Desk (Laravel 12) di docker-host kini bersifat *self-sustaining*. Apabila ada perubahan source code yang ditarik, proses container yang me-restart akan otomatis memicu `entrypoint.sh` untuk me-rebuild aset secara otomatis.
+    *   Deployment Frontend AspriAI-Desk (Laravel 13) di docker-host kini bersifat *self-sustaining*. Apabila ada perubahan source code yang ditarik, proses container yang me-restart akan otomatis memicu `entrypoint.sh` untuk me-rebuild aset secara otomatis.
+
+### [Entri 010] — Finalisasi Arsitektur Dokumen, RVM Header Fix & Agent Workflow
+*   **Tanggal/Waktu:** 2026-06-08 21:20 WIB
+*   **Tugas yang diselesaikan:**
+    *   Memodifikasi file `RVM/frontend/js/app.js` untuk menginjeksi header `CF-Access-Client-Id` dan `CF-Access-Client-Secret` pada semua request `fetch` agar berhasil melewati perlindungan Cloudflare Zero Trust ke `backend-rvm`.
+    *   Membuat file `workflow-aspri.md` sebagai panduan mutlak bagi seluruh AI Agent terkait letak *source code* Frontend (Laravel 13) dan Backend (FastAPI) serta URL *endpoint* publik yang harus dipakai.
+    *   Merombak ulang keseluruhan dokumen proyek (`README.md`, `SDD.md`, `SRS.md`, `SRD.md`, `STD.md`, `SDP.md`) agar selaras dengan arsitektur final *Decoupled*: AspriCore sebagai Stateless Proxy dan AspriDesk sebagai aplikasi monolitik Laravel 13 yang menangani otentikasi API Key via PostgreSQL.
+*   **File yang diubah/dibuat:**
+    *   `RVM/frontend/js/app.js` [DIUBAH - OK]
+    *   `.agents/rules/workflow-aspri.md` [BARU - OK]
+    *   `singularity/AspriAI/README.md` [DIUBAH - OK]
+    *   `singularity/AspriAI/docs/SDD.md` [DIUBAH - OK]
+    *   `singularity/AspriAI/docs/SRS.md` [DIUBAH - OK]
+    *   `singularity/AspriAI/docs/SRD.md` [DIUBAH - OK]
+    *   `singularity/AspriAI/docs/STD.md` [DIUBAH - OK]
+    *   `singularity/AspriAI/docs/SDP.md` [DIUBAH - OK]
+*   **Status saat ini:** **Selesai (Klarifikasi Dokumentasi Arsitektur 100%)**
+*   **Catatan untuk AI selanjutnya (Handoff Note):**
+    *   RVM Frontend sekarang bisa berkomunikasi dengan backend via Cloudflare Access.
+    *   Arsitektur AspriAI telah dipisahkan secara tegas dan Laravel 13 resmi digunakan sebagai pengelola antarmuka/database. Patuhi panduan `workflow-aspri.md`.

@@ -27,7 +27,7 @@ Dalam ekosistem komputasi berbasis GPU yang dinamis, terdapat kebutuhan mendesak
 
 Sistem ini memisahkan secara ketat (*decoupled*) antara penyedia komputasi berat (GPU cluster) dan antarmuka interaksi pengguna (Frontend):
 
-```
+```text
 ┌────────────────────────────────────────────────────────────────────────┐
 │                        PUBLIC INTERNET (WAN)                           │
 │              (Akses luar via Cloudflare Tunnel SSL HTTPS)              │
@@ -36,16 +36,16 @@ Sistem ini memisahkan secara ketat (*decoupled*) antara penyedia komputasi berat
                                    ▼
 ┌────────────────────────────────────────────────────────────────────────┐
 │                      FRONTEND: AspriAI Desk (UI)                       │
-│ • Hosted di VPS Azure (VPS-4C56G - 100.70.118.53)                      │
-│ • Atau Docker Host (vm100 - 100.90.5.60)                               │
-│ • Teknologi: Next.js + Tailwind CSS (Bio-Digital Minimalism Style)     │
+│ • Hosted di VPS Docker Host (vm100 - 100.90.5.60)                      │
+│ • Ekosistem: Laravel 13 + Postgres + Redis + MinIO via Docker Compose  │
+│ • Teknologi: Laravel, Tailwind CSS, Vite (Bio-Digital Minimalism │    Style)                                                       │
 └──────────────────────────────────┬─────────────────────────────────────┘
-                                   │ HTTP/WebSockets (Cloudflare Tunnel)
+                                   │ HTTP API (Cloudflare Access Token)
                                    ▼
 ┌────────────────────────────────────────────────────────────────────────┐
 │                 BACKEND GATEWAY: AspriAI Core                          │
-│ • Hosted di Login/Compute Node GPU Slurm (ai2 / ai3 - 100.111.139.127)  │
-│ • Teknologi: FastAPI (Python) di dalam Singularity Container           │
+│ • Hosted di Login/Compute Node GPU Slurm (ai2 / ai3 - 100.111.139.127) │
+│ • Teknologi: FastAPI (Python) sebagai Stateless Proxy                  │
 └────────────────┬─────────────────┼──────────────────┬──────────────────┘
                  │                 │                  │
                  ▼                 ▼                  ▼
@@ -75,11 +75,12 @@ Proyek ini dipisahkan menjadi dua repositori/folder mandiri untuk menyederhanaka
 │       ├── txt2img_flux.json
 │       └── img2video_svd.json
 │
-├── aspri-desk/               # Next.js App (Frontend Playground)
-│   ├── package.json          # Dependensi Next.js & Tailwind CSS
-│   ├── tailwind.config.js    # Konfigurasi token visual Bio-Digital
-│   └── src/
-│       └── app/              # Struktur folder Next.js App Router
+├── aspri-desk/               # Laravel 13 App (Frontend & DB Manager)
+│   ├── app/                  # Controller & Models (User, API Key)
+│   ├── config/               # Database, Redis, MinIO Config
+│   ├── resources/            # Views (Blade), CSS (Tailwind), JS (Vite)
+│   ├── .env.example          # Template environment Laravel
+│   └── docker-compose.yml    # Infrastruktur eksternal (Postgres/Redis)
 │
 └── docs/                     # Dokumentasi Standar Rekayasa Perangkat Lunak
     ├── SRS.md                # Software Requirements Specification
@@ -121,9 +122,9 @@ ComfyUI tidak hanya menyediakan antarmuka visual berupa graf node, melainkan dap
 
 ## 6. Keuntungan Memisahkan Frontend dan Backend
 
-1.  **Proteksi Sumber Daya GPU:** Rendering halaman antarmuka Next.js tidak menyedot memori VRAM GPU. Dengan pemisahan ini, kapasitas 32GB VRAM GPU Tesla V100 sepenuhnya dialokasikan untuk inferensi model generatif.
-2.  **Isolasi Jaringan (Security):** GPU Node yang berada di jaringan lokal privat tidak langsung terekspos ke internet. Akses luar hanya dijembatani oleh Cloudflare Tunnel menuju API Gateway, sedangkan Frontend dapat ditempatkan pada VPS luar yang aman.
-3.  **Kemandirian Deployment:** Anda bebas melakukan pembaruan antarmuka web, merancang ulang gaya visual CSS, atau menambahkan fitur UI di Next.js tanpa perlu mengganggu stabilitas jalannya layanan Ollama dan ComfyUI di GPU cluster.
+1.  **Proteksi Sumber Daya GPU:** Rendering halaman antarmuka ekosistem Laravel tidak menyedot memori VRAM GPU. Dengan pemisahan ini, kapasitas 32GB VRAM GPU Tesla V100 sepenuhnya dialokasikan untuk inferensi model generatif di Slurm Node.
+2.  **Isolasi Jaringan (Security):** GPU Node yang berada di jaringan lokal privat tidak langsung terekspos ke internet. Akses luar hanya dijembatani oleh Cloudflare Tunnel (dilengkapi Access Token) menuju API Gateway `aspri-core`, sedangkan Frontend (`aspri-desk`) ditempatkan pada VPS Docker Host yang memiliki manajemen *resource* mandiri.
+3.  **Kemandirian Deployment:** Anda bebas melakukan pembaruan antarmuka web, merancang ulang gaya visual CSS, atau memanajemen pengguna dan konfigurasi database di ekosistem Laravel tanpa perlu mengganggu stabilitas berjalannya layanan AI (Ollama, ComfyUI, dll) di kluster GPU.
 
 ---
-*Last updated: 2026-06-07*
+*Last updated: 2026-06-08*

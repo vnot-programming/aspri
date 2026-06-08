@@ -6,8 +6,8 @@ Untuk menjamin setiap kebutuhan fungsional (FR) yang didefinisikan dalam SRS dii
 
 | ID Kebutuhan (SRS) | Modul Desain Terkait (SDD) | Komponen Teknis Realisasi |
 |:---|:---|:---|
-| **FR-A.1** (Autentikasi API Key) | Bab 2 (Tabel `api_keys`) & Bab 3 (Header Auth) | FastAPI `Security` dependency injection dengan validasi token hash SHA-256 dari SQLite. |
-| **FR-A.2** (Manajemen Key di UI) | Bab 1 & Bab 2 (Tabel `api_keys`) | Dasbor Playground Laravel 13 memanggil route `POST /v1/keys` and `DELETE /v1/keys`. |
+| **FR-A.1** (Autentikasi API Key) | Bab 2 (Struktur Data) | Otentikasi Personal API Key dilakukan di layer Frontend Laravel sebelum payload diteruskan ke Backend. Backend (*Stateless*) hanya memvalidasi *Cloudflare Service Token*. |
+| **FR-A.2** (Manajemen Key di UI) | Bab 2 (PostgreSQL) | Dasbor Playground Laravel 13 mengelola operasi CRUD token API yang secara native berinteraksi dengan database PostgreSQL. |
 | **FR-A.3** (Routing API Terpadu) | Bab 3 (Spesifikasi Endpoints) | Pustaka `httpx` di FastAPI bertindak sebagai HTTP client asinkron untuk meneruskan payload. |
 | **FR-A.4** (Integrasi Cloudflare Access) | Bab 4 (Otentikasi Lapis Jaringan) | Validasi Service Token (`CF-Access-*`) di sisi Cloudflare Edge Proxy sebelum request menyentuh server API. |
 | **FR-B.1** (Chat Playground) | Bab 1 (Playground UI) | Komponen UI Blade/Livewire/Inertia Laravel 13 yang mendukung streaming token teks menggunakan pustaka Markdown renderer. |
@@ -35,4 +35,4 @@ Untuk menjamin setiap kebutuhan fungsional (FR) yang didefinisikan dalam SRS dii
 ### 2.4 Mengapa Memilih Laravel 13 untuk Frontend (AspriAI Desk)?
 *   **Integrasi Native AI SDK:** Laravel 13 memperkenalkan AI SDK bawaan secara *out-of-the-box*, memungkinkan interaksi langsung dengan LLM (Ollama) dan API generatif lainnya menggunakan *syntax* yang seragam, bersih, dan terstandarisasi.
 *   **Sistem Keamanan Bawaan (Robust Server-Side Security):** Menyediakan mekanisme otentikasi sesi, validasi token, proteksi CSRF, dan manajemen otorisasi tingkat lanjut secara *native* (misal via Laravel Sanctum/Breeze). Hal ini mengeliminasi banyak penulisan *boilerplate code* keamanan yang biasanya harus ditulis manual pada Next.js.
-*   **Keandalan Ekosistem Database:** Pustaka Eloquent ORM di Laravel sangat mempermudah pemodelan data, migrasi, dan pengelolaan tabel kunci API (`api_keys`) serta riwayat aktivitas (`activity_logs`) secara terstruktur dan efisien.
+*   **Keandalan Ekosistem Database:** Pustaka Eloquent ORM di Laravel sangat mempermudah pemodelan data, migrasi, dan pengelolaan tabel kunci API (`api_keys`) serta riwayat aktivitas (`activity_logs`) secara terstruktur pada PostgreSQL dan antrean pada Redis.

@@ -5,10 +5,11 @@
 Strategi pengujian AspriAI berfokus pada jaminan keandalan pengiriman instruksi (*job dispatching*) ke GPU cluster, keakuratan autentikasi API, serta stabilitas pembersihan cache memori CUDA untuk mencegah kegagalan *Out-Of-Memory* (OOM).
 
 ### Tingkat Pengujian:
-1.  **Unit Testing:** Validasi logika pembuatan hash token API, parser JSON workflow ComfyUI, dan routing request di FastAPI.
+1.  **Unit Testing:** Validasi logika routing request di FastAPI dan otentikasi API Key di Laravel.
 2.  **Integration Testing:** Pengujian koneksi asinkron FastAPI ke port Ollama (11434), ComfyUI WebSocket (8188), dan pengiriman job ke Slurm Manager (`sbatch`).
-3.  **UI/UX Accessibility Testing:** Pengujian responsivitas dasbor di layar ponsel dan simulasi visual dual-theme (terang/gelap) serta buta warna.
-4.  **Load/Stress Testing:** Simulasi 10 request generatif gambar secara simultan untuk memvalidasi performa antrean job Slurm.
+3.  **Infrastructure Testing:** Uji konektivitas ekosistem Docker Host (Postgres, Redis, MinIO) dari kontainer Laravel `aspri-desk`.
+4.  **UI/UX Accessibility Testing:** Pengujian responsivitas dasbor di layar ponsel dan simulasi visual dual-theme (terang/gelap) serta buta warna.
+5.  **Load/Stress Testing:** Simulasi 10 request generatif gambar secara simultan untuk memvalidasi performa antrean job Slurm.
 
 ---
 

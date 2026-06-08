@@ -7,8 +7,8 @@ Dokumen ini mendefinisikan kebutuhan perangkat lunak (fungsional dan non-fungsio
 
 ### 1.2 Cakupan Sistem
 Sistem AspriAI terdiri atas dua subsistem utama:
-1.  **AspriAI Core (Backend):** Layanan API Gateway berbasis FastAPI yang membungkus pemanggilan model AI di cluster Slurm menggunakan kontainer Singularity.
-2.  **AspriAI Desk (Frontend):** Dasbor bermain web berbasis Laravel 13 (menggunakan AI SDK bawaan) dengan antarmuka bertema *Bio-Digital Minimalism* untuk interaksi visual dengan model dan manajemen API Key.
+1.  **AspriAI Core (Backend):** Layanan API Gateway *Stateless* berbasis FastAPI yang membungkus pemanggilan model AI di cluster Slurm menggunakan kontainer Singularity.
+2.  **AspriAI Desk (Frontend):** Dasbor bermain web terpisah berbasis Laravel 13 (didukung PostgreSQL, Redis, dan MinIO di *Docker Host* eksternal) dengan antarmuka bertema *Bio-Digital Minimalism* untuk interaksi visual dan manajemen API Key.
 
 ---
 
@@ -17,8 +17,8 @@ Sistem AspriAI terdiri atas dua subsistem utama:
 Sistem wajib mendukung fitur-fitur fungsional berikut yang dikelompokkan ke dalam 4 modul utama:
 
 ### Modul A: API Gateway & Keamanan
-*   **FR-A.1 (Autentikasi):** Gateway wajib menolak semua permintaan tanpa *Personal API Key* yang valid.
-*   **FR-A.2 (Manajemen API Key):** Pengguna dapat membuat, menyalin, memantau riwayat pemanggilan, dan menghapus API Key secara langsung melalui dasbor web.
+*   **FR-A.1 (Autentikasi API Terpusat):** Gateway wajib menolak semua permintaan tanpa *Personal API Key* yang valid.
+*   **FR-A.2 (Manajemen Pengguna & API Key):** Frontend Laravel wajib memiliki fitur registrasi/login pengguna. Pengguna dapat membuat, memantau riwayat pemanggilan, dan menghapus API Key mereka melalui antarmuka dasbor web, dengan seluruh data disimpan pada PostgreSQL di *Docker Host*.
 *   **FR-A.3 (Routing API Terpadu):**
     *   `/v1/chat/completions` -> Diteruskan ke Ollama.
     *   `/v1/studio/txt2img` -> Diteruskan ke ComfyUI (Flux/SDXL).

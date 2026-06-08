@@ -42,32 +42,12 @@ Sistem **AspriAI** dirancang menggunakan arsitektur modular terpisah (*decoupled
 
 ## 2. Struktur Data & Skema Penyimpanan
 
-Untuk mengelola autentikasi *Personal API Keys* dan riwayat aktivitas secara ringan, AspriAI Core menggunakan database relasional berbasis **SQLite** (lokal di server):
+Sesuai dengan arsitektur *decoupled*, **AspriAI Core (Backend) bersifat 100% Stateless**. Backend tidak lagi menggunakan SQLite lokal. Seluruh manajemen state, manajemen pengguna, *Personal API Keys*, hingga log aktivitas sepenuhnya dikendalikan oleh **Frontend AspriAI Desk (Laravel)** melalui infrastruktur terpusat di Docker Host.
 
-### Tabel: `api_keys`
-Menyimpan data API Key pengguna untuk keperluan otentikasi eksternal.
-
-| Nama Kolom | Tipe Data | Atribut | Deskripsi |
-|:---|:---|:---|:---|
-| `id` | INTEGER | Primary Key, Auto Increment | ID unik record |
-| `key_name` | VARCHAR(50) | Not Null | Label/nama pengenal API Key (misal: "VSCode-Cline") |
-| `api_key` | VARCHAR(64) | Not Null, Unique | Hash API Key untuk validasi request |
-| `created_at` | TIMESTAMP | Default Current | Waktu pembuatan kunci |
-| `last_used_at`| TIMESTAMP | Nullable | Waktu terakhir pemanggilan API |
-| `is_active` | BOOLEAN | Default True | Status keaktifan kunci |
-
-### Tabel: `activity_logs`
-Mencatat riwayat eksekusi task untuk monitoring kuota dan analisis performa GPU.
-
-| Nama Kolom | Tipe Data | Atribut | Deskripsi |
-|:---|:---|:---|:---|
-| `id` | INTEGER | Primary Key, Auto Increment | ID unik record |
-| `api_key_id` | INTEGER | Foreign Key -> `api_keys.id` | Kunci yang digunakan |
-| `task_type` | VARCHAR(20) | Not Null | Jenis tugas (`llm_chat`, `txt2img`, `img2video`, `cv`) |
-| `prompt` | TEXT | Nullable | Input teks prompt yang dikirim |
-| `status` | VARCHAR(15) | Not Null | Status job (`SUCCESS`, `FAILED`, `RUNNING`) |
-| `duration_ms` | INTEGER | Nullable | Lama waktu rendering dalam milidetik |
-| `gpu_id` | INTEGER | Nullable | Indeks GPU Slurm yang memproses job |
+Infrastruktur penyimpanan (terisolasi di `docker-host`):
+*   **PostgreSQL:** Basis data relasional utama untuk manajemen `users`, `api_keys`, dan `activity_logs`.
+*   **Redis:** Digunakan untuk *caching*, manajemen *session*, dan antrean *job queue* (Horizon) untuk tugas asinkron di ekosistem Laravel.
+*   **MinIO:** Penyimpanan objek bertipe S3 untuk menampung gambar/video hasil *generate*, log sistem, dan aset media lainnya secara terpusat.
 
 ---
 
