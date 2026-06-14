@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.api.v1.endpoints import chat
+from app.api.v1.endpoints import chat, openai
 
 app = FastAPI(
     title="AspriAI Core API Gateway",
@@ -16,6 +16,9 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Mendaftarkan router untuk Provider & Models (Harus didaftarkan sebelum proxy catch-all Ollama)
+app.include_router(openai.router, prefix="/v1", tags=["LLM Providers"])
 
 # Mendaftarkan router untuk format OpenAI (/v1)
 app.include_router(chat.router, prefix="/v1", tags=["Ollama OpenAI Proxy"])
@@ -35,7 +38,7 @@ async def global_health_check():
     services_to_check = [
         {"name": "Ollama Server", "url": "https://backend-ollama.penelitian.my.id/v1/health", "method": "POST"},
         {"name": "RVM Server", "url": "https://backend-rvm.penelitian.my.id/api/health", "method": "GET"},
-        {"name": "ComfyUI Server", "url": "https://backend-comfui.penelitian.my.id/v1/health", "method": "GET"}
+        {"name": "ComfyUI Server", "url": "https://backend-comfui.penelitian.my.id/system_stats", "method": "GET"}
     ]
     
     # Injeksi Cloudflare Headers untuk RVM Server (agar tidak terhalang 403 Forbidden)
@@ -95,8 +98,8 @@ async def global_health_check():
         tasks = [check_service(client, s["name"], s["url"], s.get("method", "GET")) for s in services_to_check]
         results = await asyncio.gather(*tasks)
         
-    # ComfyUI dikecualikan dari status peringatan degraded karena belum dibuat
-    all_online = all(r["status"] == "online" for r in results if r["name"] != "ComfyUI Server")
+    # Evaluasi status gabungan
+    all_online = all(r["status"] == "online" for r in results)
     
     return {
         "status": "ok" if all_online else "degraded",

@@ -112,7 +112,7 @@ gantt
 *   **Tanggal/Waktu:** 2026-06-07 13:12 WIB
 *   **Tugas yang diselesaikan:**
     *   Menambahkan opsi menu baru **`8. 🤖 Manajemen AspriAI (Ollama & WebUI)`** ke dalam antarmuka menu utama skrip pengelola kluster `/data/users/g6717500336/Trainning-Models/MyFineTunning-SlurmMaster/utils/myslurm.sh`.
-    *   Mengimplementasikan fungsi `manage_aspri_ai()` yang secara cerdas mendeteksi status sewa GPU aktif (Job ID, Compute Node, State), keaktifan proses server Ollama, dan port compute node yang sedang dipetakan.
+    *   Mengimplementasikan fungsi `manage_aspri_ai()` yang secara cerdas mendeteksi status sewa GPU aktif (Job ID, Compute Node, State), keaktifan proses server Ollama, dan port compute node atau PORT Ollama Server yang sedang dipetakan.
     *   Menyusun submenu di bawah Menu 8 untuk:
         1.  🚀 **Jalankan Server Ollama:** Meluncurkan `sbatch_aspri_service.sh` secara remote di background compute node yang sedang aktif disewa (via SSH + nohup).
         2.  🛑 **Hentikan Server Ollama:** Mematikan proses server, cloudflared, dan reverse tunnel secara presisi di compute node tanpa melepaskan alokasi sewa GPU (Job Slurm tetap jalan).
@@ -277,3 +277,80 @@ gantt
     *   Konfigurasi aktif Docker dan Nginx sekarang telah ter-track secara resmi di branch `desk/dev` agar konsisten antar-lingkungan pengembangan.
 
 
+
+### [Entri 013] — Pembangunan Infrastruktur ComfyUI (Fase 2 Wrapper)
+*   **Tanggal/Waktu:** 2026-06-09 02:30 WIB
+*   **Tugas yang diselesaikan:**
+    *   Membuat skrip instalasi `setup.sh` untuk modul ComfyUI yang akan membuat struktur direktori lokal, menyalin `.env`, melakukan instalasi repositori ComfyUI, serta menarik image PyTorch (CUDA 12.1) melalui `singularity pull pytorch_cuda12_1.sif docker://pytorch/pytorch:2.2.2-cuda12.1-cudnn8-runtime`.
+    *   Membuat *self-healing watchdog daemon* `run_comfui_daemon.sh` untuk menjalankan ComfyUI di *compute node* menggunakan `srun --overlap`. Daemon ini dilengkapi dengan konfigurasi integrasi *Cloudflare Quick Tunnel*, notifikasi Telegram, serta *SSH Reverse Port Forwarding* port dinamis ke port 8188 di *slurmmaster*.
+    *   Memodifikasi *Interactive GPU Booking Menu* (`myslurm.sh`) dengan menyertakan *dashboard* pemantauan *real-time* khusus untuk layanan ComfyUI, menggantikan menu *placeholder* lama. 
+*   **File yang diubah/dibuat:**
+    *   `singularity/comfui/setup.sh` [BARU - OK]
+    *   `singularity/comfui/run_comfui_daemon.sh` [BARU - OK]
+    *   `Trainning-Models/MyFineTunning-SlurmMaster/utils/myslurm.sh` [DIUBAH - OK]
+    *   `singularity/AspriAI/docs/SDP.md` [DIUBAH - OK]
+*   **Status saat ini:** **Selesai (Infrastruktur ComfyUI 100%)**
+*   **Catatan untuk AI selanjutnya (Handoff Note):**
+    *   Struktur *backend* komputasi (ComfyUI) kini sudah siap digunakan.
+    *   Anda dapat menggunakan opsi menu 6 pada `myslurm.sh` untuk mengatur instalasi dan melihat log layanannya.
+    *   Instruksikan atau jalankan `bash /data/users/g6717500336/singularity/comfui/setup.sh --install` untuk benar-benar mengunduh dan memasang *Singularity Image Container* serta modul ComfyUI.
+
+---
+
+### [Entri 014] — Root Cause Fix: Cloudflare Tunnel Selalu Mati & Perbaikan ComfyUI Daemon
+*   **Tanggal/Waktu:** 2026-06-09 03:41 WIB
+*   **Tugas yang diselesaikan:**
+    *   **Investigasi Mendalam Cloudflare Tunnel:** Menginvestigasi mengapa tunnel selalu mati dengan `Initiating graceful shutdown due to signal terminated` setiap 2-8 detik setelah berhasil konek.
+    *   **Root Cause Ditemukan:** Port metrics default `127.0.0.1:20241` selalu konflik karena sisa binding dari instance cloudflared sebelumnya, menyebabkan instance baru menerima SIGTERM dari sistem (*address already in use*).
+    *   **Fix `myslurm.sh`:** Menambahkan flag `--metrics 127.0.0.1:<random_port>` menggunakan `shuf -i 20200-20299 -n 1` pada wrapper script cloudflared. Dengan port metrics acak, konflik tidak pernah terjadi.
+    *   **Fix `run_comfui_daemon.sh`:** Mengganti perintah `pkill -f "cloudflared tunnel.*run --token"` yang bersifat global (membunuh SEMUA instance cloudflared di sistem termasuk tunnel master) dengan mekanisme **PID File Tracking** yang spesifik. Daemon kini hanya mematikan instance tunnel miliknya sendiri via `${LOGS_DIR}/named_tunnel.pid`.
+    *   **Identifikasi Error ComfyUI:** Package `comfy_kitchen 0.2.10` terinstal di `~/.local/lib/python3.10/site-packages/` (luar container) tidak kompatibel dengan PyTorch 2.2.2 di dalam container Singularity (butuh PyTorch ≥ 2.4 untuk `torch.library.custom_op`). User akan upgrade container manual.
+    *   **Tunnel Cloudflare Stabil:** Setelah fix, sesi tmux `cloudflare_tunnel` berjalan stabil (PID 2046991) lebih dari 1 menit tanpa terminasi.
+*   **File yang diubah/dibuat:**
+    *   `Trainning-Models/MyFineTunning-SlurmMaster/utils/myslurm.sh` [DIMODIFIKASI — wrapper cloudflared dengan random metrics port]
+    *   `singularity/comfui/run_comfui_daemon.sh` [DIMODIFIKASI — pkill global diganti PID file tracking]
+    *   `singularity/AspriAI/docs/SDP.md` [DIUBAH — Penambahan Log 014]
+*   **Status saat ini:** **Selesai**
+*   **Catatan untuk AI selanjutnya (Handoff Note):**
+    *   Tunnel Cloudflare kini **stabil** via sesi tmux `cloudflare_tunnel` dengan `--metrics` port acak.
+    *   ComfyUI **belum bisa dijalankan** hingga container Singularity diupgrade ke PyTorch ≥ 2.4. User akan melakukan upgrade manual. Setelah upgrade, cukup jalankan kembali menu 6 `myslurm.sh` → Opsi 1.
+    *   **JANGAN** gunakan `pkill -f "cloudflared tunnel.*run --token"` di script manapun — selalu gunakan PID file targeting.
+    *   Quick Tunnel (fallback) untuk ComfyUI saat ini rate-limited (429) dari Cloudflare karena terlalu banyak request selama debugging — akan pulih otomatis dalam beberapa jam.
+
+
+### [Entri 014] — Bugfix & Version Bump untuk ComfyUI
+*   **Tanggal/Waktu:** 2026-06-09 04:05 WIB
+*   **Tugas yang diselesaikan:**
+    *   Menaikkan versi PyTorch Singularity Image di `setup.sh` ke versi `2.4.0-cuda12.1-cudnn9-runtime`. Hal ini mengatasi error `AttributeError: module 'torch.library' has no attribute 'custom_op'` pada library `comfy_kitchen` yang membutuhkan minimum PyTorch 2.4.0.
+    *   Mengevaluasi error HTTP 429 pada Cloudflare Quick Tunnel. Daemon `run_comfui_daemon.sh` dan `myslurm.sh` dirancang untuk gracefully menangani kegagalan layanan gratis Quick Tunnel, memprioritaskan ketersediaan via Named Tunnel.
+*   **File yang diubah/dibuat:**
+    *   `singularity/comfui/setup.sh` [DIUBAH - OK]
+*   **Status saat ini:** **Selesai (Menunggu Instalasi Ulang PyTorch 2.4.0)**
+*   **Catatan untuk AI selanjutnya (Handoff Note):**
+    *   Struktur siap. User perlu menjalankan `setup.sh --install` kembali.
+
+### [Entri 015] — Integrasi Endpoint Health ComfyUI ke AspriAI Core
+*   **Tanggal/Waktu:** 2026-06-09 04:45 WIB
+*   **Tugas yang diselesaikan:**
+    *   Memodifikasi *Gateway* `aspri-core/main.py` untuk mengintegrasikan ComfyUI ke dalam sistem pengecekan *Health Check* global (`/health`).
+    *   Mengubah *endpoint* ComfyUI dari yang sebelumnya berupa draf `/v1/health` (menimbulkan error 404) menjadi menggunakan API *native* `/system_stats`.
+    *   Menghapus logika pengecualian (*exclusion*) untuk ComfyUI, sehingga apabila *node* ComfyUI mati, AspriAI Core akan mendeteksinya dengan benar dan mengembalikan status `degraded`.
+*   **File yang diubah/dibuat:**
+    *   `singularity/AspriAI/aspri-core/main.py` [DIUBAH - OK]
+*   **Status saat ini:** **Selesai**
+*   **Catatan untuk AI selanjutnya (Handoff Note):**
+    *   ComfyUI sudah menjadi warga kelas satu (*first-class citizen*) di dalam arsitektur AspriAI Core.
+
+### [Entri 016] — Pembuatan Layanan Model List Berstandar OpenAI (OpenAI-Compatible Models Endpoint)
+*   **Tanggal/Waktu:** 2026-06-09 13:46 WIB
+*   **Tugas yang diselesaikan:**
+    *   Menyelesaikan masalah `no space left on device` secara otomatis dengan membersihkan cache pip dan huggingface di `/data/users/g6717500336/.cache/`.
+    *   Menambahkan endpoint baru di `openai.py` yang menyediakan rute `GET /v1/models` dan `GET /v1/vendors`. Endpoint ini memungkinkan frontend (AspriDesk) mendapatkan daftar model AI dinamis yang berstandar OpenAI-compatible (serta rute kustom vendor untuk rendering UI yang lebih baik).
+    *   Mendaftarkan router `openai.py` di `main.py` sebelum proxy Ollama agar permintaan `/v1/models` tidak tertelan oleh *catch-all* rute Ollama.
+*   **File yang diubah/dibuat:**
+    *   `singularity/AspriAI/aspri-core/app/api/v1/endpoints/openai.py` [DIBUAT BARU]
+    *   `singularity/AspriAI/aspri-core/main.py` [DIUBAH - OK]
+*   **Status saat ini:** **Selesai (LLM Providers Router 100%)**
+*   **Catatan untuk AI selanjutnya (Handoff Note):**
+    *   FastAPI sekarang memproses `/v1/models` secara internal, sedangkan semua sisanya `/v1/*` diteruskan (*reverse-proxied*) ke Ollama Server.
+    *   Daftar LLM providers ini saat ini masih di-hardcode dalam memori, di masa depan dapat dikembangkan agar bersinkronisasi dengan database PostgreSQL melalui Laravel.
